@@ -4,7 +4,7 @@ import { Collector } from '../collector'
 import { Address, SubkeyUnlockReq } from '../types'
 import { InscriptionInfo } from '../types/inscription'
 import { calcXudtHash, generateInscriptionId, serializeInscriptionInfo } from './helper'
-import { append0x, utf8ToHex } from '../utils'
+import { append0x, remove0x, utf8ToHex } from '../utils'
 import { ConnectResponseData } from '@joyid/ckb'
 import { Aggregator } from '../aggregator'
 
@@ -31,7 +31,8 @@ export const buildDeployTx = async ({
     throw new Error('The address has no live cells')
   }
 
-  const infoCapacity = INSCRIPTION_INFO_MIN_CAPACITY + BigInt(utf8ToHex(info.name).length / 2) * BigInt(100000000)
+  const infoCapacity =
+    INSCRIPTION_INFO_MIN_CAPACITY + BigInt(remove0x(utf8ToHex(info.name)).length / 2) * BigInt(100000000)
   const { inputs, capacity: inputCapacity } = collector.collectInputs(cells, infoCapacity, FEE)
 
   const inscriptionInfoType = {
