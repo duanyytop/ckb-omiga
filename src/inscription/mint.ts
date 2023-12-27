@@ -3,37 +3,39 @@ import {
   FEE,
   MIN_CAPACITY,
   getJoyIDCellDep,
-  getInscriptionInfoTypeScript,
   getInscriptionInfoDep,
+  getXudtDep,
+  getInscriptionDep,
+  getXudtTypeScript,
   getCotaTypeScript,
 } from '../constants'
 import { Collector } from '../collector'
 import { Address, SubkeyUnlockReq } from '../types'
-import { InscriptionInfo } from '../types/inscription'
-import { calcXudtHash, generateInscriptionId, serializeInscriptionInfo } from './helper'
-import { append0x, remove0x, utf8ToHex } from '../utils'
+import { calcXudtTypeScript, calcXudtWitness } from './helper'
+import { append0x, u128ToLe } from '../utils'
 import { ConnectResponseData } from '@joyid/ckb'
 import { Aggregator } from '../aggregator'
 
 // 1ckb for tx fee
-const INSCRIPTION_INFO_MIN_CAPACITY = BigInt(195) * BigInt(100000000)
-const calcInfoCapacity = (name: string) => {
-  return INSCRIPTION_INFO_MIN_CAPACITY + BigInt(remove0x(utf8ToHex(name)).length / 2) * BigInt(100000000)
-}
-export interface DeployParams {
+const INSCRIPTION_MIN_CAPACITY = BigInt(145) * BigInt(100000000)
+export interface MintParams {
   collector: Collector
   aggregator: Aggregator
   address: Address
-  info: InscriptionInfo
+  infoType: CKBComponents.Script
+  infoOutPoint: CKBComponents.OutPoint
+  mintLimit: bigint
   connectData: ConnectResponseData
 }
-export const buildDeployTx = async ({
+export const buildMintTx = async ({
   collector,
   aggregator,
   address,
-  info,
+  infoType,
+  infoOutPoint,
+  mintLimit,
   connectData,
-}: DeployParams): Promise<CKBComponents.RawTransaction> => {
+}: MintParams): Promise<CKBComponents.RawTransaction> => {
   const isMainnet = address.startsWith('ckb')
   const lock = addressToScript(address)
   const cells = await collector.getCells(lock)
@@ -41,40 +43,39 @@ export const buildDeployTx = async ({
     throw new Error('The address has no live cells')
   }
 
-  const infoCapacity = calcInfoCapacity(info.name)
-  const { inputs, capacity: inputCapacity } = collector.collectInputs(cells, infoCapacity, FEE)
+  const { inputs, capacity: inputCapacity } = collector.collectInputs(cells, INSCRIPTION_MIN_CAPACITY, FEE)
 
-  const inscriptionInfoType = {
-    ...getInscriptionInfoTypeScript(isMainnet),
-    args: generateInscriptionId(inputs[0], 0),
-  }
+  const xudtType = calcXudtTypeScript(infoType, isMainnet)
 
-  let outputs: CKBComponents.CellOutput[] = [
-    {
-      capacity: `0x${infoCapacity.toString(16)}`,
-      lock,
-      type: inscriptionInfoType,
-    },
-  ]
-  const changeCapacity = inputCapacity - FEE - infoCapacity
+  const changeCapacity = inputCapacity - FEE - INSCRIPTION_MIN_CAPACITY
   if (changeCapacity < MIN_CAPACITY) {
     throw new Error('Not enough capacity for change cell')
   }
-  outputs.push({
-    capacity: `0x${changeCapacity.toString(16)}`,
-    lock,
-  })
+  let outputs: CKBComponents.CellOutput[] = [
+    {
+      capacity: `0x${changeCapacity.toString(16)}`,
+      lock,
+    },
+    {
+      capacity: `0x${INSCRIPTION_MIN_CAPACITY.toString(16)}`,
+      lock,
+      type: xudtType,
+    },
+  ]
 
-  let cellDeps = [getJoyIDCellDep(isMainnet), getInscriptionInfoDep(isMainnet)]
-
-  const newInfo: InscriptionInfo = {
-    ...info,
-    xudtHash: calcXudtHash(inscriptionInfoType, isMainnet),
+  const inscriptionInfoCellDep: CKBComponents.CellDep = {
+    outPoint: infoOutPoint,
+    depType: 'code',
   }
-  const inscriptionInfo = append0x(serializeInscriptionInfo(newInfo))
+  let cellDeps = [
+    getJoyIDCellDep(isMainnet),
+    getXudtDep(isMainnet),
+    getInscriptionDep(isMainnet),
+    inscriptionInfoCellDep,
+  ]
 
   const emptyWitness = { lock: '', inputType: '', outputType: '' }
-  let witnesses = [serializeWitnessArgs(emptyWitness), '0x']
+  let witnesses = [serializeWitnessArgs(emptyWitness), calcXudtWitness(infoType, isMainnet)]
   if (connectData.keyType === 'sub_key') {
     const pubkeyHash = append0x(blake160(append0x(connectData.pubkey), 'hex'))
     const req: SubkeyUnlockReq = {
@@ -108,7 +109,7 @@ export const buildDeployTx = async ({
     headerDeps: [],
     inputs,
     outputs,
-    outputsData: [inscriptionInfo, '0x'],
+    outputsData: ['0x', append0x(u128ToLe(mintLimit))],
     witnesses,
   }
 

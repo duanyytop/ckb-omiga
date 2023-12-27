@@ -192,7 +192,7 @@ export const getInscriptionInfoDep = (isMainnet = false) =>
 export const getInscriptionTypeScript = (isMainnet = false) =>
   isMainnet ? MainnetInfo.InscriptionTypeScript : TestnetInfo.InscriptionTypeScript
 export const getInscriptionDep = (isMainnet = false) =>
-  isMainnet ? MainnetInfo.InscriptionInfoDep : TestnetInfo.InscriptionInfoDep
+  isMainnet ? MainnetInfo.InscriptionInfoDep : TestnetInfo.InscriptionDep
 
 export const getRebaseTypeScript = (isMainnet = false) =>
   isMainnet ? MainnetInfo.RebaseTypeScript : TestnetInfo.RebaseTypeScript

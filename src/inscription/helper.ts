@@ -1,4 +1,12 @@
-import { PERSONAL, blake2b, bytesToHex, hexToBytes, scriptToHash, serializeInput } from '@nervosnetwork/ckb-sdk-utils'
+import {
+  PERSONAL,
+  blake2b,
+  hexToBytes,
+  scriptToHash,
+  serializeInput,
+  serializeScript,
+  serializeWitnessArgs,
+} from '@nervosnetwork/ckb-sdk-utils'
 import { append0x, remove0x, u128ToLe, u64ToLe, u8ToHex, utf8ToHex } from '../utils'
 import { InscriptionInfo } from '../types'
 import { getXudtTypeScript, getInscriptionTypeScript } from '../constants'
@@ -12,8 +20,8 @@ export const generateInscriptionId = (firstInput: CKBComponents.CellInput, outpu
 }
 
 export const serializeInscriptionInfo = (info: InscriptionInfo) => {
-  let ret = u128ToLe(info.maxSupply)
-  ret = ret.concat(u128ToLe(info.mintLimit))
+  let ret = u128ToLe(info.maxSupply * BigInt(10 ** info.decimal))
+  ret = ret.concat(u128ToLe(info.mintLimit * BigInt(10 ** info.decimal)))
   ret = ret.concat(remove0x(info.xudtHash))
   ret = ret.concat(u8ToHex(info.isMintClosed))
   ret = ret.concat(u8ToHex(info.decimal))
@@ -21,14 +29,29 @@ export const serializeInscriptionInfo = (info: InscriptionInfo) => {
   return ret
 }
 
-export const calcXudtHash = (inscriptionInfoScript: CKBComponents.Script, isMainnet: boolean) => {
-  const ownerScript = {
+export const generateOwnerScript = (inscriptionInfoScript: CKBComponents.Script, isMainnet: boolean) => {
+  return {
     ...getInscriptionTypeScript(isMainnet),
     args: append0x(scriptToHash(inscriptionInfoScript)),
-  }
-  const inscriptionScript = {
+  } as CKBComponents.Script
+}
+
+export const calcXudtTypeScript = (inscriptionInfoScript: CKBComponents.Script, isMainnet: boolean) => {
+  const ownerScript = generateOwnerScript(inscriptionInfoScript, isMainnet)
+  return {
     ...getXudtTypeScript(isMainnet),
     args: append0x(scriptToHash(ownerScript)),
-  }
-  return scriptToHash(inscriptionScript)
+  } as CKBComponents.Script
+}
+
+export const calcXudtHash = (inscriptionInfoScript: CKBComponents.Script, isMainnet: boolean) => {
+  return scriptToHash(calcXudtTypeScript(inscriptionInfoScript, isMainnet))
+}
+
+export const calcXudtWitness = (inscriptionInfoScript: CKBComponents.Script, isMainnet: boolean) => {
+  const ownerScript = generateOwnerScript(inscriptionInfoScript, isMainnet)
+  const owner = remove0x(serializeScript(ownerScript))
+  const witnessInputType = `0x6d00000014000000690000006900000069000000${owner}04000000`
+  const emptyWitness = { lock: '', inputType: '', outputType: witnessInputType }
+  return serializeWitnessArgs(emptyWitness)
 }
