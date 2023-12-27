@@ -1,89 +1,66 @@
 import { addressToScript, blake160, serializeScript, serializeWitnessArgs } from '@nervosnetwork/ckb-sdk-utils'
 import {
   FEE,
-  MIN_CAPACITY,
   getJoyIDCellDep,
   getInscriptionInfoTypeScript,
   getInscriptionInfoDep,
   getCotaTypeScript,
 } from '../constants'
 import { Collector } from '../collector'
-import { Address, Hex, SubkeyUnlockReq } from '../types'
-import { InscriptionInfo } from '../types/inscription'
-import { calcInscriptionInfoSize, calcXudtHash, generateInscriptionId, serializeInscriptionInfo } from './helper'
+import { Address, Byte32, SubkeyUnlockReq } from '../types'
+import { setInscriptionInfoClosed } from './helper'
 import { append0x } from '../utils'
 import { ConnectResponseData } from '@joyid/ckb'
 import { Aggregator } from '../aggregator'
 
-// include lock, type, capacity and 1ckb for tx fee
-const INSCRIPTION_INFO_MIN_SIZE = 129
-const calcInfoCapacity = (info: InscriptionInfo) => {
-  return BigInt(INSCRIPTION_INFO_MIN_SIZE + calcInscriptionInfoSize(info)) * BigInt(100000000)
-}
-export interface DeployParams {
+export interface CloseParams {
   collector: Collector
   aggregator: Aggregator
   address: Address
-  info: InscriptionInfo
+  inscriptionId: Byte32
   connectData: ConnectResponseData
   fee?: bigint
 }
-export interface DeployResult {
-  rawTx: CKBComponents.RawTransaction
-  inscriptionId: Hex
-}
-export const buildDeployTx = async ({
+export const buildCloseTx = async ({
   collector,
   aggregator,
   address,
-  info,
+  inscriptionId,
   connectData,
   fee,
-}: DeployParams): Promise<DeployResult> => {
-  const isMainnet = address.startsWith('ckb')
+}: CloseParams): Promise<CKBComponents.RawTransaction> => {
   const txFee = fee ?? FEE
-  const lock = addressToScript(address)
-  const cells = await collector.getCells(lock)
-  if (cells == undefined || cells.length == 0) {
-    throw new Error('The address has no live cells')
-  }
-
-  const infoCapacity = calcInfoCapacity(info)
-  const { inputs, capacity: inputCapacity } = collector.collectInputs(cells, infoCapacity, txFee)
-
-  const inscriptionId = generateInscriptionId(inputs[0], 0)
-
+  const isMainnet = address.startsWith('ckb')
   const inscriptionInfoType = {
     ...getInscriptionInfoTypeScript(isMainnet),
-    args: inscriptionId,
+    args: append0x(inscriptionId),
   }
-
-  let outputs: CKBComponents.CellOutput[] = [
+  const lock = addressToScript(address)
+  const [inscriptionInfoCell] = await collector.getCells(lock, inscriptionInfoType)
+  console.log(JSON.stringify(inscriptionInfoCell))
+  if (!inscriptionInfoCell) {
+    throw new Error('The address has no inscription info cells')
+  }
+  const inputs: CKBComponents.CellInput[] = [
     {
-      capacity: `0x${infoCapacity.toString(16)}`,
-      lock,
-      type: inscriptionInfoType,
+      previousOutput: inscriptionInfoCell.outPoint,
+      since: '0x0',
     },
   ]
-  const changeCapacity = inputCapacity - txFee - infoCapacity
-  if (changeCapacity < MIN_CAPACITY) {
-    throw new Error('Not enough capacity for change cell')
-  }
-  outputs.push({
-    capacity: `0x${changeCapacity.toString(16)}`,
-    lock,
-  })
+  const outputCapacity = BigInt(append0x(inscriptionInfoCell.output.capacity)) - txFee
+  const outputs: CKBComponents.CellOutput[] = [
+    {
+      ...inscriptionInfoCell.output,
+      capacity: `0x${outputCapacity.toString(16)}`,
+    },
+  ]
 
   let cellDeps = [getJoyIDCellDep(isMainnet), getInscriptionInfoDep(isMainnet)]
 
-  const newInfo: InscriptionInfo = {
-    ...info,
-    xudtHash: calcXudtHash(inscriptionInfoType, isMainnet),
-  }
-  const inscriptionInfo = append0x(serializeInscriptionInfo(newInfo))
+  const inscriptionInfo = setInscriptionInfoClosed(inscriptionInfoCell.outputData)
 
   const emptyWitness = { lock: '', inputType: '', outputType: '' }
-  let witnesses = [serializeWitnessArgs(emptyWitness), '0x']
+  let witnesses = [serializeWitnessArgs(emptyWitness)]
   if (connectData.keyType === 'sub_key') {
     const pubkeyHash = append0x(blake160(append0x(connectData.pubkey), 'hex'))
     const req: SubkeyUnlockReq = {
@@ -117,9 +94,9 @@ export const buildDeployTx = async ({
     headerDeps: [],
     inputs,
     outputs,
-    outputsData: [inscriptionInfo, '0x'],
+    outputsData: [inscriptionInfo],
     witnesses,
   }
 
-  return { rawTx, inscriptionId }
+  return rawTx
 }

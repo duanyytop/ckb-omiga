@@ -41,7 +41,7 @@ const TestnetInfo = {
 
   InscriptionInfoDep: {
     outPoint: {
-      txHash: '0x5c2705df3c0aa5486935248b1371d9309dce53c3aa2648a58694e3c025f97d83',
+      txHash: '0x7bf3899cf41879ed0319bf5312c9db5bf5620fff9ebe59556c261c48f0369054',
       index: '0x0',
     },
     depType: 'code',
@@ -55,7 +55,7 @@ const TestnetInfo = {
 
   InscriptionDep: {
     outPoint: {
-      txHash: '0xc3c812e490fd6e879b73aed8841c66b81f5caf8be0f6bd4bc00a2b5b2f15180b',
+      txHash: '0x9101c1db97bc2013ace8ebd0718723be3d0e3748f2ef22bd7f1dbda0ca75d7d0',
       index: '0x0',
     },
     depType: 'code',
@@ -69,7 +69,7 @@ const TestnetInfo = {
 
   RebaseTypeDep: {
     outPoint: {
-      txHash: '0xad0031fb2c1d3cb7c87fc44c49519d6fd26e0c68263d3ce433482f634b041851',
+      txHash: '0x64ba52275a3012605dda1df52e872b3a1d99009d3b3728beffdfa36d4bdd14b7',
       index: '0x0',
     },
     depType: 'code',

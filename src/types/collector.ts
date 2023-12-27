@@ -6,7 +6,7 @@ export interface IndexerCell {
   blockNumber: CKBComponents.BlockNumber
   outPoint: CKBComponents.OutPoint
   output: CKBComponents.CellOutput
-  outputData: Hex[]
+  outputData: Hex
   txIndex: Hex
 }
 

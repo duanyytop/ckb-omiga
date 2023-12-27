@@ -1,14 +1,5 @@
 import { addressToScript, blake160, serializeScript, serializeWitnessArgs } from '@nervosnetwork/ckb-sdk-utils'
-import {
-  FEE,
-  MIN_CAPACITY,
-  getJoyIDCellDep,
-  getInscriptionInfoDep,
-  getXudtDep,
-  getInscriptionDep,
-  getXudtTypeScript,
-  getCotaTypeScript,
-} from '../constants'
+import { FEE, MIN_CAPACITY, getJoyIDCellDep, getXudtDep, getInscriptionDep, getCotaTypeScript } from '../constants'
 import { Collector } from '../collector'
 import { Address, SubkeyUnlockReq } from '../types'
 import { calcXudtTypeScript, calcXudtWitness } from './helper'
@@ -26,6 +17,7 @@ export interface MintParams {
   infoOutPoint: CKBComponents.OutPoint
   mintLimit: bigint
   connectData: ConnectResponseData
+  fee?: bigint
 }
 export const buildMintTx = async ({
   collector,
@@ -35,19 +27,21 @@ export const buildMintTx = async ({
   infoOutPoint,
   mintLimit,
   connectData,
+  fee,
 }: MintParams): Promise<CKBComponents.RawTransaction> => {
   const isMainnet = address.startsWith('ckb')
+  const txFee = fee ?? FEE
   const lock = addressToScript(address)
   const cells = await collector.getCells(lock)
   if (cells == undefined || cells.length == 0) {
     throw new Error('The address has no live cells')
   }
 
-  const { inputs, capacity: inputCapacity } = collector.collectInputs(cells, INSCRIPTION_MIN_CAPACITY, FEE)
+  const { inputs, capacity: inputCapacity } = collector.collectInputs(cells, INSCRIPTION_MIN_CAPACITY, txFee)
 
   const xudtType = calcXudtTypeScript(infoType, isMainnet)
 
-  const changeCapacity = inputCapacity - FEE - INSCRIPTION_MIN_CAPACITY
+  const changeCapacity = inputCapacity - txFee - INSCRIPTION_MIN_CAPACITY
   if (changeCapacity < MIN_CAPACITY) {
     throw new Error('Not enough capacity for change cell')
   }
