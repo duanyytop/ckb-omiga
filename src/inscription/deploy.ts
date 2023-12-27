@@ -10,6 +10,9 @@ import { Aggregator } from '../aggregator'
 
 // 1ckb for tx fee
 const INSCRIPTION_INFO_MIN_CAPACITY = BigInt(195) * BigInt(100000000)
+const calcInfoCapacity = (name: string) => {
+  return INSCRIPTION_INFO_MIN_CAPACITY + BigInt(remove0x(utf8ToHex(name)).length / 2) * BigInt(100000000)
+}
 export interface DeployParams {
   collector: Collector
   aggregator: Aggregator
@@ -31,8 +34,7 @@ export const buildDeployTx = async ({
     throw new Error('The address has no live cells')
   }
 
-  const infoCapacity =
-    INSCRIPTION_INFO_MIN_CAPACITY + BigInt(remove0x(utf8ToHex(info.name)).length / 2) * BigInt(100000000)
+  const infoCapacity = calcInfoCapacity(info.name)
   const { inputs, capacity: inputCapacity } = collector.collectInputs(cells, infoCapacity, FEE)
 
   const inscriptionInfoType = {
