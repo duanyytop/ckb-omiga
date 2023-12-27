@@ -11,8 +11,11 @@ jobs:
       - uses: actions/setup-node@v3.5.0
         with:
           node-version: '18'
+      - uses: pnpm/action-setup@v2.2.4
+        with:
+          version: 8
       - name: Install dependency
-        run: yarn
+        run: pnpm install
       - name: Lint
         run: pnpm lint
       - name: Prettier
