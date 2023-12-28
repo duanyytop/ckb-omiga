@@ -6,21 +6,10 @@ import {
   getInscriptionInfoDep,
   getCotaTypeScript,
 } from '../constants'
-import { Collector } from '../collector'
-import { Address, Byte32, SubkeyUnlockReq } from '../types'
+import { CloseParams, SubkeyUnlockReq } from '../types'
 import { setInscriptionInfoClosed } from './helper'
 import { append0x } from '../utils'
-import { ConnectResponseData } from '@joyid/ckb'
-import { Aggregator } from '../aggregator'
 
-export interface CloseParams {
-  collector: Collector
-  aggregator: Aggregator
-  address: Address
-  inscriptionId: Byte32
-  connectData: ConnectResponseData
-  fee?: bigint
-}
 export const buildCloseTx = async ({
   collector,
   aggregator,
@@ -36,8 +25,7 @@ export const buildCloseTx = async ({
     args: append0x(inscriptionId),
   }
   const lock = addressToScript(address)
-  const [inscriptionInfoCell] = await collector.getCells(lock, inscriptionInfoType)
-  console.log(JSON.stringify(inscriptionInfoCell))
+  const [inscriptionInfoCell] = await collector.getCells({ lock, type: inscriptionInfoType })
   if (!inscriptionInfoCell) {
     throw new Error('The address has no inscription info cells')
   }
@@ -77,7 +65,7 @@ export const buildCloseTx = async ({
     witnesses[0] = serializeWitnessArgs(emptyWitness)
 
     const cotaType = getCotaTypeScript(isMainnet)
-    const cotaCells = await collector.getCells(lock, cotaType)
+    const cotaCells = await collector.getCells({ lock, type: cotaType })
     if (!cotaCells || cotaCells.length === 0) {
       throw new Error("Cota cell doesn't exist")
     }

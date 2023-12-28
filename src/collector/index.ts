@@ -17,36 +17,51 @@ export class Collector {
     return new CKB(this.ckbNodeUrl)
   }
 
-  async getCells(lock: CKBComponents.Script, type?: CKBComponents.Script): Promise<IndexerCell[] | undefined> {
-    const filter = type
-      ? {
-          script: {
-            code_hash: type.codeHash,
-            hash_type: type.hashType,
-            args: type.args,
-          },
-        }
-      : {
-          script: null,
-          output_data_len_range: ['0x0', '0x1'],
-        }
+  async getCells({
+    lock,
+    type,
+  }: {
+    lock?: CKBComponents.Script
+    type?: CKBComponents.Script
+  }): Promise<IndexerCell[] | undefined> {
+    let param: any
+    if (lock) {
+      const filter = type
+        ? {
+            script: {
+              code_hash: type.codeHash,
+              hash_type: type.hashType,
+              args: type.args,
+            },
+          }
+        : {
+            script: null,
+            output_data_len_range: ['0x0', '0x1'],
+          }
+      param = {
+        script: {
+          code_hash: lock.codeHash,
+          hash_type: lock.hashType,
+          args: lock.args,
+        },
+        script_type: 'lock',
+        filter,
+      }
+    } else {
+      param = {
+        script: {
+          code_hash: type.codeHash,
+          hash_type: type.hashType,
+          args: type.args,
+        },
+        script_type: 'type',
+      }
+    }
     let payload = {
       id: 1,
       jsonrpc: '2.0',
       method: 'get_cells',
-      params: [
-        {
-          script: {
-            code_hash: lock.codeHash,
-            hash_type: lock.hashType,
-            args: lock.args,
-          },
-          script_type: 'lock',
-          filter,
-        },
-        'asc',
-        '0x64',
-      ],
+      params: [param, 'asc', '0x3E8'],
     }
     const body = JSON.stringify(payload, null, '  ')
     let response = (

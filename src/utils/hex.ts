@@ -1,4 +1,5 @@
 import { hexToBytes, bytesToHex } from '@nervosnetwork/ckb-sdk-utils'
+import BigNumber from 'bignumber.js'
 
 export const remove0x = (hex: string): string => {
   if (hex.startsWith('0x')) {
@@ -53,23 +54,23 @@ export const hexToU8 = (hex: string): number => {
 }
 
 export const u64ToLe = (u64: bigint): string => {
-  if (typeof u64 !== 'bigint') {
-    throw new Error('u64 must be bigint')
-  }
   const val = u64.toString(16).padStart(16, '0')
   const viewLeft = u32ToLe(`0x${val.slice(8)}`)
   const viewRight = u32ToLe(`0x${val.slice(0, 8)}`)
   return `${viewLeft}${viewRight}`
 }
 
-export const u128ToLe = (u128: bigint): string => {
-  if (typeof u128 !== 'bigint') {
-    throw new Error('u128 must be bigint')
-  }
+export const u128ToLe = (u128: bigint | BigNumber): string => {
   const val = u128.toString(16).padStart(32, '0')
   const viewLeft = u64ToLe(BigInt(`0x${val.slice(16)}`))
   const viewRight = u64ToLe(BigInt(`0x${val.slice(0, 16)}`))
   return `${viewLeft}${viewRight}`
+}
+
+export const leToU128 = (leHex: string): bigint => {
+  const bytes = hexToBytes(append0x(leHex))
+  const beHex = `0x${bytes.reduceRight((pre, cur) => pre + cur.toString(16).padStart(2, '0'), '')}`
+  return BigInt(beHex)
 }
 
 export const utf8ToHex = (text: string) => {

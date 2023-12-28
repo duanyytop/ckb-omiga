@@ -1,29 +1,25 @@
 import { addressToScript, blake160, serializeScript, serializeWitnessArgs } from '@nervosnetwork/ckb-sdk-utils'
-import { FEE, MIN_CAPACITY, getJoyIDCellDep, getXudtDep, getInscriptionDep, getCotaTypeScript } from '../constants'
-import { Collector } from '../collector'
-import { Address, SubkeyUnlockReq } from '../types'
-import { calcXudtTypeScript, calcXudtWitness } from './helper'
+import {
+  FEE,
+  MIN_CAPACITY,
+  getJoyIDCellDep,
+  getXudtDep,
+  getInscriptionDep,
+  getCotaTypeScript,
+  getInscriptionInfoTypeScript,
+} from '../constants'
+import { MintParams, SubkeyUnlockReq } from '../types'
+import { calcXudtTypeScript, calcMintXudtWitness } from './helper'
 import { append0x, u128ToLe } from '../utils'
-import { ConnectResponseData } from '@joyid/ckb'
-import { Aggregator } from '../aggregator'
 
 // 1ckb for tx fee
 const INSCRIPTION_MIN_CAPACITY = BigInt(145) * BigInt(100000000)
-export interface MintParams {
-  collector: Collector
-  aggregator: Aggregator
-  address: Address
-  infoType: CKBComponents.Script
-  infoOutPoint: CKBComponents.OutPoint
-  mintLimit: bigint
-  connectData: ConnectResponseData
-  fee?: bigint
-}
+
 export const buildMintTx = async ({
   collector,
   aggregator,
   address,
-  infoType,
+  inscriptionId,
   infoOutPoint,
   mintLimit,
   connectData,
@@ -32,13 +28,17 @@ export const buildMintTx = async ({
   const isMainnet = address.startsWith('ckb')
   const txFee = fee ?? FEE
   const lock = addressToScript(address)
-  const cells = await collector.getCells(lock)
+  const cells = await collector.getCells({ lock })
   if (cells == undefined || cells.length == 0) {
     throw new Error('The address has no live cells')
   }
 
   const { inputs, capacity: inputCapacity } = collector.collectInputs(cells, INSCRIPTION_MIN_CAPACITY, txFee)
 
+  const infoType: CKBComponents.Script = {
+    ...getInscriptionInfoTypeScript(isMainnet),
+    args: append0x(inscriptionId),
+  }
   const xudtType = calcXudtTypeScript(infoType, isMainnet)
 
   const changeCapacity = inputCapacity - txFee - INSCRIPTION_MIN_CAPACITY
@@ -69,7 +69,7 @@ export const buildMintTx = async ({
   ]
 
   const emptyWitness = { lock: '', inputType: '', outputType: '' }
-  let witnesses = [serializeWitnessArgs(emptyWitness), calcXudtWitness(infoType, isMainnet)]
+  let witnesses = [serializeWitnessArgs(emptyWitness), calcMintXudtWitness(infoType, isMainnet)]
   if (connectData.keyType === 'sub_key') {
     const pubkeyHash = append0x(blake160(append0x(connectData.pubkey), 'hex'))
     const req: SubkeyUnlockReq = {
@@ -86,7 +86,7 @@ export const buildMintTx = async ({
     witnesses[0] = serializeWitnessArgs(emptyWitness)
 
     const cotaType = getCotaTypeScript(isMainnet)
-    const cotaCells = await collector.getCells(lock, cotaType)
+    const cotaCells = await collector.getCells({ lock, type: cotaType })
     if (!cotaCells || cotaCells.length === 0) {
       throw new Error("Cota cell doesn't exist")
     }

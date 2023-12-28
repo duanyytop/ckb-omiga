@@ -8,9 +8,9 @@ import {
   serializeScript,
   serializeWitnessArgs,
 } from '@nervosnetwork/ckb-sdk-utils'
-import { append0x, remove0x, u128ToLe, u64ToLe, u8ToHex, utf8ToHex } from '../utils'
-import { InscriptionInfo } from '../types'
-import { getXudtTypeScript, getInscriptionTypeScript } from '../constants'
+import { append0x, leToU128, remove0x, u128ToLe, u64ToLe, u8ToHex, utf8ToHex } from '../utils'
+import { Byte32, IndexerCell, InscriptionInfo } from '../types'
+import { getXudtTypeScript, getInscriptionTypeScript, getRebaseTypeScript } from '../constants'
 
 export const generateInscriptionId = (firstInput: CKBComponents.CellInput, outputIndex: number) => {
   const input = hexToBytes(serializeInput(firstInput))
@@ -50,6 +50,21 @@ export const setInscriptionInfoClosed = (info: string) => {
   return append0x(bytesToHex(temp))
 }
 
+export const setInscriptionInfoRebased = (info: string, rebasedXudtHash: Byte32) => {
+  let temp = hexToBytes(append0x(info))
+  // the mintStatus is the last one of cell data and the value will be updated to 2(rebased)
+  temp[temp.length - 1] = 2
+
+  // the xudeHash is at data[temp.length - 65, temp.length - 33]
+  const rebasedHash = hexToBytes(append0x(rebasedXudtHash))
+  const startIndex = temp.length - 65
+  const endIndex = temp.length - 33
+
+  const result = new Uint8Array([...temp.subarray(0, startIndex), ...rebasedHash, ...temp.subarray(endIndex)])
+
+  return append0x(bytesToHex(result))
+}
+
 export const generateOwnerScript = (inscriptionInfoScript: CKBComponents.Script, isMainnet: boolean) => {
   return {
     ...getInscriptionTypeScript(isMainnet),
@@ -69,10 +84,67 @@ export const calcXudtHash = (inscriptionInfoScript: CKBComponents.Script, isMain
   return scriptToHash(calcXudtTypeScript(inscriptionInfoScript, isMainnet))
 }
 
-export const calcXudtWitness = (inscriptionInfoScript: CKBComponents.Script, isMainnet: boolean) => {
+export const calcRebasedXudtOwnerScript = (
+  inscriptionInfoScript: CKBComponents.Script,
+  preXudtHash: Byte32,
+  actualSupply: bigint,
+  isMainnet: boolean,
+) => {
+  const rebasedOwnerScriptArgs =
+    append0x(scriptToHash(inscriptionInfoScript)) + remove0x(preXudtHash) + u128ToLe(actualSupply)
+  const rebasedOwnerScript: CKBComponents.Script = {
+    ...getRebaseTypeScript(isMainnet),
+    args: rebasedOwnerScriptArgs,
+  }
+  return rebasedOwnerScript
+}
+
+export const calcRebasedXudtType = (
+  inscriptionInfoScript: CKBComponents.Script,
+  preXudtHash: Byte32,
+  actualSupply: bigint,
+  isMainnet: boolean,
+) => {
+  const rebasedOwnerScript = calcRebasedXudtOwnerScript(inscriptionInfoScript, preXudtHash, actualSupply, isMainnet)
+  const rebasedXudtType: CKBComponents.Script = {
+    ...getXudtTypeScript(isMainnet),
+    args: append0x(scriptToHash(rebasedOwnerScript)),
+  }
+  return rebasedXudtType
+}
+
+export const calcRebasedXudtHash = (
+  inscriptionInfoScript: CKBComponents.Script,
+  preXudtHash: Byte32,
+  actual_supply: bigint,
+  isMainnet: boolean,
+) => {
+  return scriptToHash(calcRebasedXudtType(inscriptionInfoScript, preXudtHash, actual_supply, isMainnet))
+}
+
+export const calcMintXudtWitness = (inscriptionInfoScript: CKBComponents.Script, isMainnet: boolean) => {
   const ownerScript = generateOwnerScript(inscriptionInfoScript, isMainnet)
   const owner = remove0x(serializeScript(ownerScript))
+  // serialize mint XudtInputWitness
   const witnessInputType = `0x6d00000014000000690000006900000069000000${owner}04000000`
   const emptyWitness = { lock: '', inputType: '', outputType: witnessInputType }
   return serializeWitnessArgs(emptyWitness)
+}
+
+export const calcRebasedXudtWitness = (
+  inscriptionInfoScript: CKBComponents.Script,
+  preXudtHash: Byte32,
+  actualSupply: bigint,
+  isMainnet: boolean,
+) => {
+  const rebasedOwnerScript = calcRebasedXudtOwnerScript(inscriptionInfoScript, preXudtHash, actualSupply, isMainnet)
+  const owner = remove0x(serializeScript(rebasedOwnerScript))
+  // serialize rebased XudtInputWitness
+  const witnessInputType = `0x9d00000014000000990000009900000099000000${owner}04000000`
+  const emptyWitness = { lock: '', inputType: '', outputType: witnessInputType }
+  return serializeWitnessArgs(emptyWitness)
+}
+
+export const calcActualSupply = (xudtCells: IndexerCell[]) => {
+  return xudtCells.map(cell => leToU128(cell.outputData)).reduce((prev, current) => prev + current, BigInt(0))
 }

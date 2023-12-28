@@ -7,31 +7,17 @@ import {
   getInscriptionInfoDep,
   getCotaTypeScript,
 } from '../constants'
-import { Collector } from '../collector'
-import { Address, Hex, SubkeyUnlockReq } from '../types'
-import { InscriptionInfo } from '../types/inscription'
+import { SubkeyUnlockReq } from '../types'
+import { DeployParams, DeployResult, InscriptionInfo } from '../types/inscription'
 import { calcInscriptionInfoSize, calcXudtHash, generateInscriptionId, serializeInscriptionInfo } from './helper'
 import { append0x } from '../utils'
-import { ConnectResponseData } from '@joyid/ckb'
-import { Aggregator } from '../aggregator'
 
 // include lock, type, capacity and 1ckb for tx fee
 const INSCRIPTION_INFO_MIN_SIZE = 129
 const calcInfoCapacity = (info: InscriptionInfo) => {
   return BigInt(INSCRIPTION_INFO_MIN_SIZE + calcInscriptionInfoSize(info)) * BigInt(100000000)
 }
-export interface DeployParams {
-  collector: Collector
-  aggregator: Aggregator
-  address: Address
-  info: InscriptionInfo
-  connectData: ConnectResponseData
-  fee?: bigint
-}
-export interface DeployResult {
-  rawTx: CKBComponents.RawTransaction
-  inscriptionId: Hex
-}
+
 export const buildDeployTx = async ({
   collector,
   aggregator,
@@ -43,7 +29,7 @@ export const buildDeployTx = async ({
   const isMainnet = address.startsWith('ckb')
   const txFee = fee ?? FEE
   const lock = addressToScript(address)
-  const cells = await collector.getCells(lock)
+  const cells = await collector.getCells({ lock })
   if (cells == undefined || cells.length == 0) {
     throw new Error('The address has no live cells')
   }
@@ -100,7 +86,7 @@ export const buildDeployTx = async ({
     witnesses[0] = serializeWitnessArgs(emptyWitness)
 
     const cotaType = getCotaTypeScript(isMainnet)
-    const cotaCells = await collector.getCells(lock, cotaType)
+    const cotaCells = await collector.getCells({ lock, type: cotaType })
     if (!cotaCells || cotaCells.length === 0) {
       throw new Error("Cota cell doesn't exist")
     }
