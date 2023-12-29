@@ -34,22 +34,29 @@ export interface DeployResult {
 export interface MintParams extends BaseParams {
   inscriptionId: Byte32
   mintLimit: bigint
-  cellCount?: number
 }
 
 export interface CloseParams extends BaseParams {
   inscriptionId: Byte32
 }
 
+export interface ActualSupplyParams {
+  collector: Collector
+  inscriptionId: string
+  isMainnet: boolean
+}
+
 export interface InfoRebaseParams extends BaseParams {
   inscriptionId: Byte32
   preXudtHash: Byte32
+  actualSupply: bigint
 }
 
 export interface RebaseMintParams extends BaseParams {
   inscriptionInfo: InscriptionInfo
   inscriptionId: Byte32
   preXudtHash: Byte32
+  actualSupply: bigint
 }
 
 export interface TransferParams extends BaseParams {

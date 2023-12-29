@@ -22,7 +22,6 @@ export const buildMintTx = async ({
   inscriptionId,
   mintLimit,
   connectData,
-  cellCount,
   fee,
 }: MintParams): Promise<CKBComponents.RawTransaction> => {
   const isMainnet = address.startsWith('ckb')
@@ -32,9 +31,8 @@ export const buildMintTx = async ({
   if (cells == undefined || cells.length == 0) {
     throw new Error('The address has no live cells')
   }
-  const count = cellCount ?? 1
 
-  const { inputs, capacity: inputCapacity } = collector.collectInputs(cells, XUDT_MIN_CAPACITY * BigInt(count), txFee)
+  const { inputs, capacity: inputCapacity } = collector.collectInputs(cells, XUDT_MIN_CAPACITY, txFee)
 
   const infoType: CKBComponents.Script = {
     ...getInscriptionInfoTypeScript(isMainnet),
@@ -57,7 +55,7 @@ export const buildMintTx = async ({
     inscriptionInfoCellDep,
   ]
 
-  const changeCapacity = inputCapacity - txFee - XUDT_MIN_CAPACITY * BigInt(count)
+  const changeCapacity = inputCapacity - txFee - XUDT_MIN_CAPACITY
   if (changeCapacity < MIN_CAPACITY) {
     throw new Error('Not enough capacity for change cell')
   }
@@ -70,10 +68,8 @@ export const buildMintTx = async ({
   ]
   const emptyWitness = { lock: '', inputType: '', outputType: '' }
   let witnesses = [serializeWitnessArgs(emptyWitness), calcMintXudtWitness(infoType, isMainnet)]
-  for (let index = 0; index < count; index++) {
-    outputs.push({ capacity: `0x${XUDT_MIN_CAPACITY.toString(16)}`, lock, type: xudtType })
-    outputsData.push(append0x(u128ToLe(mintLimit)))
-  }
+  outputs.push({ capacity: `0x${XUDT_MIN_CAPACITY.toString(16)}`, lock, type: xudtType })
+  outputsData.push(append0x(u128ToLe(mintLimit)))
 
   if (connectData.keyType === 'sub_key') {
     const pubkeyHash = append0x(blake160(append0x(connectData.pubkey), 'hex'))

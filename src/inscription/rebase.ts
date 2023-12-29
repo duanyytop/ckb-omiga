@@ -8,20 +8,29 @@ import {
   getCotaTypeScript,
   MIN_CAPACITY,
   getXudtDep,
-  getInscriptionDep,
   getRebaseDep,
 } from '../constants'
-import { InfoRebaseParams, RebaseMintParams, SubkeyUnlockReq } from '../types'
+import { ActualSupplyParams, InfoRebaseParams, RebaseMintParams, SubkeyUnlockReq } from '../types'
 import {
   calcActualSupply,
   calcRebasedXudtHash,
   calcRebasedXudtType,
   calcXudtTypeScript,
-  calcMintXudtWitness,
   setInscriptionInfoRebased,
   calcRebasedXudtWitness,
 } from './helper'
 import { append0x, leToU128, u128ToLe } from '../utils'
+
+export const calcInscriptionActualSupply = async ({ collector, inscriptionId, isMainnet }: ActualSupplyParams) => {
+  const inscriptionInfoType = {
+    ...getInscriptionInfoTypeScript(isMainnet),
+    args: append0x(inscriptionId),
+  }
+  const preXudtType = calcXudtTypeScript(inscriptionInfoType, isMainnet)
+  const preXudtCells = await collector.getCells({ type: preXudtType })
+  const actualSupply = calcActualSupply(preXudtCells)
+  return actualSupply
+}
 
 export const buildInfoRebaseTx = async ({
   collector,
@@ -30,6 +39,7 @@ export const buildInfoRebaseTx = async ({
   inscriptionId,
   preXudtHash,
   connectData,
+  actualSupply,
   fee,
 }: InfoRebaseParams): Promise<CKBComponents.RawTransaction> => {
   const txFee = fee ?? FEE
@@ -60,9 +70,6 @@ export const buildInfoRebaseTx = async ({
 
   let cellDeps = [getJoyIDCellDep(isMainnet), getInscriptionInfoDep(isMainnet)]
 
-  const preXudtType = calcXudtTypeScript(inscriptionInfoType, isMainnet)
-  const preXudtCells = await collector.getCells({ type: preXudtType })
-  const actualSupply = calcActualSupply(preXudtCells)
   const rebasedXudtHash = calcRebasedXudtHash(inscriptionInfoType, preXudtHash, actualSupply, isMainnet)
   const inscriptionInfo = setInscriptionInfoRebased(inscriptionInfoCell.outputData, rebasedXudtHash)
 
@@ -116,6 +123,7 @@ export const buildRebaseMintTx = async ({
   inscriptionInfo,
   preXudtHash,
   connectData,
+  actualSupply,
   fee,
 }: RebaseMintParams): Promise<CKBComponents.RawTransaction> => {
   const isMainnet = address.startsWith('ckb')
@@ -145,9 +153,6 @@ export const buildRebaseMintTx = async ({
   }
   let cellDeps = [getJoyIDCellDep(isMainnet), getXudtDep(isMainnet), getRebaseDep(isMainnet), inscriptionInfoCellDep]
 
-  const preXudtType = calcXudtTypeScript(inscriptionInfoType, isMainnet)
-  const preXudtCells = await collector.getCells({ type: preXudtType })
-  const actualSupply = calcActualSupply(preXudtCells)
   const rebasedXudtType = calcRebasedXudtType(inscriptionInfoType, preXudtHash, actualSupply, isMainnet)
 
   const changeCapacity = inputCapacity - txFee
