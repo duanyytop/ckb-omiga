@@ -18,14 +18,7 @@ const calcInfoCapacity = (info: InscriptionInfo) => {
   return BigInt(INSCRIPTION_INFO_MIN_SIZE + calcInscriptionInfoSize(info)) * BigInt(100000000)
 }
 
-export const buildDeployTx = async ({
-  collector,
-  aggregator,
-  address,
-  info,
-  connectData,
-  fee,
-}: DeployParams): Promise<DeployResult> => {
+export const buildDeployTx = async ({ collector, joyID, address, info, fee }: DeployParams): Promise<DeployResult> => {
   const isMainnet = address.startsWith('ckb')
   const txFee = fee ?? FEE
   const lock = addressToScript(address)
@@ -70,14 +63,14 @@ export const buildDeployTx = async ({
 
   const emptyWitness = { lock: '', inputType: '', outputType: '' }
   let witnesses = [serializeWitnessArgs(emptyWitness), '0x']
-  if (connectData.keyType === 'sub_key') {
-    const pubkeyHash = append0x(blake160(append0x(connectData.pubkey), 'hex'))
+  if (joyID && joyID.connectData.keyType === 'sub_key') {
+    const pubkeyHash = append0x(blake160(append0x(joyID.connectData.pubkey), 'hex'))
     const req: SubkeyUnlockReq = {
       lockScript: serializeScript(lock),
       pubkeyHash,
       algIndex: 1, // secp256r1
     }
-    const { unlockEntry } = await aggregator.generateSubkeyUnlockSmt(req)
+    const { unlockEntry } = await joyID.aggregator.generateSubkeyUnlockSmt(req)
     const emptyWitness = {
       lock: '',
       inputType: '',

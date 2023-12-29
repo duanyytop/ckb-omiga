@@ -17,11 +17,10 @@ const XUDT_MIN_CAPACITY = BigInt(145) * BigInt(100000000)
 
 export const buildMintTx = async ({
   collector,
-  aggregator,
+  joyID,
   address,
   inscriptionId,
   mintLimit,
-  connectData,
   fee,
 }: MintParams): Promise<CKBComponents.RawTransaction> => {
   const isMainnet = address.startsWith('ckb')
@@ -71,14 +70,14 @@ export const buildMintTx = async ({
   outputs.push({ capacity: `0x${XUDT_MIN_CAPACITY.toString(16)}`, lock, type: xudtType })
   outputsData.push(append0x(u128ToLe(mintLimit)))
 
-  if (connectData.keyType === 'sub_key') {
-    const pubkeyHash = append0x(blake160(append0x(connectData.pubkey), 'hex'))
+  if (joyID && joyID.connectData.keyType === 'sub_key') {
+    const pubkeyHash = append0x(blake160(append0x(joyID.connectData.pubkey), 'hex'))
     const req: SubkeyUnlockReq = {
       lockScript: serializeScript(lock),
       pubkeyHash,
       algIndex: 1, // secp256r1
     }
-    const { unlockEntry } = await aggregator.generateSubkeyUnlockSmt(req)
+    const { unlockEntry } = await joyID.aggregator.generateSubkeyUnlockSmt(req)
     const emptyWitness = {
       lock: '',
       inputType: '',

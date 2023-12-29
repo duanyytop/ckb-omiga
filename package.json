@@ -1,11 +1,11 @@
 {
-  "name": "joyid-omiga",
-  "version": "0.0.2",
-  "description": "The JavaScript SDK of JoyID for Omiga",
+  "name": "ckb-omiga",
+  "version": "0.0.3",
+  "description": "The JavaScript SDK for CKB Inscription Omiga",
   "author": "duanyytop <duanyytop@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/duanyytop/joyid-omiga/issues"
+    "url": "https://github.com/duanyytop/ckb-omiga/issues"
   },
   "publishConfig": {
     "access": "public"

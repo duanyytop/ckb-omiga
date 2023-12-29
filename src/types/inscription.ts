@@ -14,16 +14,20 @@ export interface InscriptionInfo {
   mintStatus: U8
 }
 
+export interface JoyIDConfig {
+  aggregator: Aggregator
+  connectData: ConnectResponseData
+}
+
 interface BaseParams {
   collector: Collector
-  aggregator: Aggregator
   address: Address
-  connectData: ConnectResponseData
   fee?: bigint
 }
 
 export interface DeployParams extends BaseParams {
   info: InscriptionInfo
+  joyID?: JoyIDConfig
 }
 
 export interface DeployResult {
@@ -34,10 +38,12 @@ export interface DeployResult {
 export interface MintParams extends BaseParams {
   inscriptionId: Byte32
   mintLimit: bigint
+  joyID?: JoyIDConfig
 }
 
 export interface CloseParams extends BaseParams {
   inscriptionId: Byte32
+  joyID?: JoyIDConfig
 }
 
 export interface ActualSupplyParams {
@@ -50,6 +56,7 @@ export interface InfoRebaseParams extends BaseParams {
   inscriptionId: Byte32
   preXudtHash: Byte32
   actualSupply: bigint
+  joyID?: JoyIDConfig
 }
 
 export interface RebaseMintParams extends BaseParams {
@@ -57,10 +64,12 @@ export interface RebaseMintParams extends BaseParams {
   inscriptionId: Byte32
   preXudtHash: Byte32
   actualSupply: bigint
+  joyID?: JoyIDConfig
 }
 
 export interface TransferParams extends BaseParams {
   inscriptionId: Byte32
   toAddress: Address
   cellCount?: number
+  joyID?: JoyIDConfig
 }

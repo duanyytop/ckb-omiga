@@ -12,10 +12,9 @@ import { append0x } from '../utils'
 
 export const buildCloseTx = async ({
   collector,
-  aggregator,
+  joyID,
   address,
   inscriptionId,
-  connectData,
   fee,
 }: CloseParams): Promise<CKBComponents.RawTransaction> => {
   const txFee = fee ?? FEE
@@ -49,14 +48,14 @@ export const buildCloseTx = async ({
 
   const emptyWitness = { lock: '', inputType: '', outputType: '' }
   let witnesses = [serializeWitnessArgs(emptyWitness)]
-  if (connectData.keyType === 'sub_key') {
-    const pubkeyHash = append0x(blake160(append0x(connectData.pubkey), 'hex'))
+  if (joyID && joyID.connectData.keyType === 'sub_key') {
+    const pubkeyHash = append0x(blake160(append0x(joyID.connectData.pubkey), 'hex'))
     const req: SubkeyUnlockReq = {
       lockScript: serializeScript(lock),
       pubkeyHash,
       algIndex: 1, // secp256r1
     }
-    const { unlockEntry } = await aggregator.generateSubkeyUnlockSmt(req)
+    const { unlockEntry } = await joyID.aggregator.generateSubkeyUnlockSmt(req)
     const emptyWitness = {
       lock: '',
       inputType: '',

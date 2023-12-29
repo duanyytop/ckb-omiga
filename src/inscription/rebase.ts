@@ -34,11 +34,10 @@ export const calcInscriptionActualSupply = async ({ collector, inscriptionId, is
 
 export const buildInfoRebaseTx = async ({
   collector,
-  aggregator,
+  joyID,
   address,
   inscriptionId,
   preXudtHash,
-  connectData,
   actualSupply,
   fee,
 }: InfoRebaseParams): Promise<CKBComponents.RawTransaction> => {
@@ -75,14 +74,14 @@ export const buildInfoRebaseTx = async ({
 
   const emptyWitness = { lock: '', inputType: '', outputType: '' }
   let witnesses = [serializeWitnessArgs(emptyWitness)]
-  if (connectData.keyType === 'sub_key') {
-    const pubkeyHash = append0x(blake160(append0x(connectData.pubkey), 'hex'))
+  if (joyID.connectData.keyType === 'sub_key') {
+    const pubkeyHash = append0x(blake160(append0x(joyID.connectData.pubkey), 'hex'))
     const req: SubkeyUnlockReq = {
       lockScript: serializeScript(lock),
       pubkeyHash,
       algIndex: 1, // secp256r1
     }
-    const { unlockEntry } = await aggregator.generateSubkeyUnlockSmt(req)
+    const { unlockEntry } = await joyID.aggregator.generateSubkeyUnlockSmt(req)
     const emptyWitness = {
       lock: '',
       inputType: '',
@@ -117,12 +116,11 @@ export const buildInfoRebaseTx = async ({
 
 export const buildRebaseMintTx = async ({
   collector,
-  aggregator,
+  joyID,
   address,
   inscriptionId,
   inscriptionInfo,
   preXudtHash,
-  connectData,
   actualSupply,
   fee,
 }: RebaseMintParams): Promise<CKBComponents.RawTransaction> => {
@@ -179,14 +177,14 @@ export const buildRebaseMintTx = async ({
     serializeWitnessArgs(emptyWitness),
     calcRebasedXudtWitness(inscriptionInfoType, preXudtHash, actualSupply, isMainnet),
   ]
-  if (connectData.keyType === 'sub_key') {
-    const pubkeyHash = append0x(blake160(append0x(connectData.pubkey), 'hex'))
+  if (joyID && joyID.connectData.keyType === 'sub_key') {
+    const pubkeyHash = append0x(blake160(append0x(joyID.connectData.pubkey), 'hex'))
     const req: SubkeyUnlockReq = {
       lockScript: serializeScript(lock),
       pubkeyHash,
       algIndex: 1, // secp256r1
     }
-    const { unlockEntry } = await aggregator.generateSubkeyUnlockSmt(req)
+    const { unlockEntry } = await joyID.aggregator.generateSubkeyUnlockSmt(req)
     const emptyWitness = {
       lock: '',
       inputType: '',
