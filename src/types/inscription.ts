@@ -33,8 +33,8 @@ export interface DeployResult {
 
 export interface MintParams extends BaseParams {
   inscriptionId: Byte32
-  infoOutPoint: CKBComponents.OutPoint
   mintLimit: bigint
+  cellCount?: number
 }
 
 export interface CloseParams extends BaseParams {
@@ -50,4 +50,10 @@ export interface RebaseMintParams extends BaseParams {
   inscriptionInfo: InscriptionInfo
   inscriptionId: Byte32
   preXudtHash: Byte32
+}
+
+export interface TransferParams extends BaseParams {
+  inscriptionId: Byte32
+  toAddress: Address
+  cellCount?: number
 }
