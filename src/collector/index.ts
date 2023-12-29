@@ -45,6 +45,7 @@ export class Collector {
           args: lock.args,
         },
         script_type: 'lock',
+        script_search_mode: 'exact',
         filter,
       }
     } else {
@@ -54,6 +55,7 @@ export class Collector {
           hash_type: type.hashType,
           args: type.args,
         },
+        script_search_mode: 'exact',
         script_type: 'type',
       }
     }
