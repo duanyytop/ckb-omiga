@@ -1,6 +1,6 @@
 {
   "name": "joyid-omiga",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "The JavaScript SDK of JoyID for Omiga",
   "author": "duanyytop <duanyytop@gmail.com>",
   "license": "MIT",
