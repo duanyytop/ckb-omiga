@@ -9,8 +9,8 @@ dependencies:
     specifier: ^0.21.1
     version: 0.21.1
   '@joyid/ckb':
-    specifier: ^0.0.2
-    version: 0.0.2
+    specifier: ^0.0.3
+    version: 0.0.3
   '@nervosnetwork/ckb-sdk-core':
     specifier: ^0.109.0
     version: 0.109.0
@@ -586,9 +586,9 @@ packages:
       '@sinclair/typebox': 0.27.8
     dev: true
 
-  /@joyid/ckb@0.0.2:
+  /@joyid/ckb@0.0.3:
     resolution:
-      { integrity: sha512-/dJhNowXhIX5FsyRsX5nk6ud7VzQUldLs7/gCkW2J8RtxwWF0RMULuFIkQDGdorfL7dpTG76WCbOCugzWLH6ww== }
+      { integrity: sha512-x5zEjeV7oJYRFTAMNcI4YYN2H+5nNoXHnkGEkA5NRA65SDIWf6n2kJbASoTmE4ULdCHtQq7bLBBBMrBUsJO4kg== }
     dev: false
 
   /@jridgewell/gen-mapping@0.3.3:

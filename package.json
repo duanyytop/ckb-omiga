@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "@ckb-lumos/base": "^0.21.1",
-    "@joyid/ckb": "^0.0.2",
+    "@joyid/ckb": "^0.0.3",
     "@nervosnetwork/ckb-sdk-core": "^0.109.0",
     "@nervosnetwork/ckb-sdk-utils": "^0.109.0",
     "@nervosnetwork/ckb-types": "^0.109.0",
