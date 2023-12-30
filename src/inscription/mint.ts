@@ -1,4 +1,10 @@
-import { addressToScript, blake160, serializeScript, serializeWitnessArgs } from '@nervosnetwork/ckb-sdk-utils'
+import {
+  addressToScript,
+  blake160,
+  hexToBytes,
+  serializeScript,
+  serializeWitnessArgs,
+} from '@nervosnetwork/ckb-sdk-utils'
 import {
   FEE,
   MIN_CAPACITY,
@@ -8,12 +14,21 @@ import {
   getCotaTypeScript,
   getInscriptionInfoTypeScript,
 } from '../constants'
-import { MintParams, SubkeyUnlockReq } from '../types'
+import { Address, MintParams, SubkeyUnlockReq } from '../types'
 import { calcXudtTypeScript, calcMintXudtWitness } from './helper'
 import { append0x, u128ToLe } from '../utils'
 
-// 1ckb for tx fee
-const XUDT_MIN_CAPACITY = BigInt(145) * BigInt(100000000)
+// include lock, xudt type, capacity and 1ckb for tx fee
+export const calcXudtCapacity = (address: Address): bigint => {
+  const lock = addressToScript(address)
+  const argsSize = hexToBytes(lock.args).length
+  const lockSize = 32 + 1 + argsSize
+  const xudtTypeSize = 32 + 32 + 1
+  const capacitySize = 8
+  const xudtDataSize = 16
+  const cellSize = lockSize + xudtTypeSize + capacitySize + xudtDataSize + 1
+  return BigInt(cellSize) * BigInt(100000000)
+}
 
 export const buildMintTx = async ({
   collector,
@@ -31,7 +46,8 @@ export const buildMintTx = async ({
     throw new Error('The address has no live cells')
   }
 
-  const { inputs, capacity: inputCapacity } = collector.collectInputs(cells, XUDT_MIN_CAPACITY, txFee)
+  const xudtCapacity = calcXudtCapacity(address)
+  const { inputs, capacity: inputCapacity } = collector.collectInputs(cells, xudtCapacity, txFee)
 
   const infoType: CKBComponents.Script = {
     ...getInscriptionInfoTypeScript(isMainnet),
@@ -54,7 +70,7 @@ export const buildMintTx = async ({
     inscriptionInfoCellDep,
   ]
 
-  const changeCapacity = inputCapacity - txFee - XUDT_MIN_CAPACITY
+  const changeCapacity = inputCapacity - txFee - xudtCapacity
   if (changeCapacity < MIN_CAPACITY) {
     throw new Error('Not enough capacity for change cell')
   }
@@ -67,7 +83,7 @@ export const buildMintTx = async ({
   ]
   const emptyWitness = { lock: '', inputType: '', outputType: '' }
   let witnesses = [serializeWitnessArgs(emptyWitness), calcMintXudtWitness(infoType, isMainnet)]
-  outputs.push({ capacity: `0x${XUDT_MIN_CAPACITY.toString(16)}`, lock, type: xudtType })
+  outputs.push({ capacity: `0x${xudtCapacity.toString(16)}`, lock, type: xudtType })
   outputsData.push(append0x(u128ToLe(mintLimit)))
 
   if (joyID && joyID.connectData.keyType === 'sub_key') {

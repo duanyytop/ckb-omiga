@@ -1,4 +1,10 @@
-import { addressToScript, blake160, serializeScript, serializeWitnessArgs } from '@nervosnetwork/ckb-sdk-utils'
+import {
+  addressToScript,
+  blake160,
+  hexToBytes,
+  serializeScript,
+  serializeWitnessArgs,
+} from '@nervosnetwork/ckb-sdk-utils'
 import BigNumber from 'bignumber.js'
 import {
   FEE,
@@ -10,7 +16,7 @@ import {
   getXudtDep,
   getRebaseDep,
 } from '../constants'
-import { ActualSupplyParams, InfoRebaseParams, RebaseMintParams, SubkeyUnlockReq } from '../types'
+import { ActualSupplyParams, Address, InfoRebaseParams, RebaseMintParams, SubkeyUnlockReq } from '../types'
 import {
   calcActualSupply,
   calcRebasedXudtHash,
@@ -20,6 +26,7 @@ import {
   calcRebasedXudtWitness,
 } from './helper'
 import { append0x, leToU128, u128ToLe } from '../utils'
+import { calcXudtCapacity } from './mint'
 
 export const calcInscriptionActualSupply = async ({ collector, inscriptionId, isMainnet }: ActualSupplyParams) => {
   const inscriptionInfoType = {
@@ -114,6 +121,19 @@ export const buildInfoRebaseTx = async ({
   return rawTx
 }
 
+export const calcRebaseMintCapacity = (
+  address: Address,
+): { rebasedXudtCapacity: bigint; minChangeCapacity: bigint } => {
+  const rebasedXudtCapacity = calcXudtCapacity(address)
+
+  const lock = addressToScript(address)
+  const argsSize = hexToBytes(lock.args).length
+  const lockSize = 32 + 1 + argsSize
+  const capacitySize = 8
+  const minChangeCapacity = BigInt(lockSize + capacitySize) * BigInt(100000000)
+
+  return { rebasedXudtCapacity, minChangeCapacity }
+}
 export const buildRebaseMintTx = async ({
   collector,
   joyID,
@@ -128,6 +148,8 @@ export const buildRebaseMintTx = async ({
   const txFee = fee ?? FEE
   const lock = addressToScript(address)
 
+  const { minChangeCapacity } = calcRebaseMintCapacity(address)
+
   const inscriptionInfoType = {
     ...getInscriptionInfoTypeScript(isMainnet),
     args: append0x(inscriptionId),
@@ -141,7 +163,7 @@ export const buildRebaseMintTx = async ({
   if (cells == undefined || cells.length == 0) {
     throw new Error('The address has no live cells')
   }
-  let { inputs, capacity: inputCapacity } = collector.collectInputs(cells, MIN_CAPACITY, txFee)
+  let { inputs, capacity: inputCapacity } = collector.collectInputs(cells, minChangeCapacity, txFee)
   inputs = [{ previousOutput: xudtCell.outPoint, since: '0x0' }, ...inputs]
 
   const [inscriptionInfoCell] = await collector.getCells({ lock, type: inscriptionInfoType })

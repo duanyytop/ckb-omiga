@@ -1,4 +1,10 @@
-import { addressToScript, blake160, serializeScript, serializeWitnessArgs } from '@nervosnetwork/ckb-sdk-utils'
+import {
+  addressToScript,
+  blake160,
+  hexToBytes,
+  serializeScript,
+  serializeWitnessArgs,
+} from '@nervosnetwork/ckb-sdk-utils'
 import {
   FEE,
   MIN_CAPACITY,
@@ -7,15 +13,21 @@ import {
   getInscriptionInfoDep,
   getCotaTypeScript,
 } from '../constants'
-import { SubkeyUnlockReq } from '../types'
+import { Address, SubkeyUnlockReq } from '../types'
 import { DeployParams, DeployResult, InscriptionInfo } from '../types/inscription'
 import { calcInscriptionInfoSize, calcXudtHash, generateInscriptionId, serializeInscriptionInfo } from './helper'
 import { append0x } from '../utils'
 
-// include lock, type, capacity and 1ckb for tx fee
-const INSCRIPTION_INFO_MIN_SIZE = 129
-const calcInfoCapacity = (info: InscriptionInfo) => {
-  return BigInt(INSCRIPTION_INFO_MIN_SIZE + calcInscriptionInfoSize(info)) * BigInt(100000000)
+// include lock, inscription info type, capacity and 1ckb for tx fee
+export const calcInscriptionInfoCapacity = (address: Address, info: InscriptionInfo) => {
+  const lock = addressToScript(address)
+  const argsSize = hexToBytes(lock.args).length
+  const lockSize = 32 + 1 + argsSize
+  const inscriptionInfoTypeSize = 32 + 32 + 1
+  const capacitySize = 8
+  const xudtDataSize = calcInscriptionInfoSize(info)
+  const cellSize = lockSize + inscriptionInfoTypeSize + capacitySize + xudtDataSize + 1
+  return BigInt(cellSize) * BigInt(100000000)
 }
 
 export const buildDeployTx = async ({ collector, joyID, address, info, fee }: DeployParams): Promise<DeployResult> => {
@@ -27,7 +39,7 @@ export const buildDeployTx = async ({ collector, joyID, address, info, fee }: De
     throw new Error('The address has no live cells')
   }
 
-  const infoCapacity = calcInfoCapacity(info)
+  const infoCapacity = calcInscriptionInfoCapacity(address, info)
   const { inputs, capacity: inputCapacity } = collector.collectInputs(cells, infoCapacity, txFee)
 
   const inscriptionId = generateInscriptionId(inputs[0], 0)
