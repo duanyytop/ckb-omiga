@@ -16,7 +16,14 @@ import {
   getXudtDep,
   getRebaseDep,
 } from '../constants'
-import { ActualSupplyParams, Address, InfoRebaseParams, RebaseMintParams, SubkeyUnlockReq } from '../types'
+import {
+  ActualSupplyParams,
+  Address,
+  InfoRebaseParams,
+  RebaseMintParams,
+  RebaseMintResult,
+  SubkeyUnlockReq,
+} from '../types'
 import {
   calcActualSupply,
   calcRebasedXudtHash,
@@ -143,7 +150,7 @@ export const buildRebaseMintTx = async ({
   preXudtHash,
   actualSupply,
   fee,
-}: RebaseMintParams): Promise<CKBComponents.RawTransaction> => {
+}: RebaseMintParams): Promise<RebaseMintResult> => {
   const isMainnet = address.startsWith('ckb')
   const txFee = fee ?? FEE
   const lock = addressToScript(address)
@@ -236,5 +243,5 @@ export const buildRebaseMintTx = async ({
     witnesses,
   }
 
-  return rawTx
+  return { rawTx, rebasedXudtType }
 }

@@ -65,6 +65,14 @@ export const setInscriptionInfoRebased = (info: string, rebasedXudtHash: Byte32)
   return append0x(bytesToHex(result))
 }
 
+export const getXudtHashFromInfo = (info: string) => {
+  let temp = hexToBytes(append0x(info))
+  // the xudeHash is at data[temp.length - 65, temp.length - 33]
+  const startIndex = temp.length - 65
+  const endIndex = temp.length - 33
+  return bytesToHex(temp.subarray(startIndex, endIndex))
+}
+
 export const generateOwnerScript = (inscriptionInfoScript: CKBComponents.Script, isMainnet: boolean) => {
   return {
     ...getInscriptionTypeScript(isMainnet),

@@ -33,6 +33,7 @@ export interface DeployParams extends BaseParams {
 export interface DeployResult {
   rawTx: CKBComponents.RawTransaction
   inscriptionId: Hex
+  xudtHash: Byte32
 }
 
 export interface MintParams extends BaseParams {
@@ -67,8 +68,20 @@ export interface RebaseMintParams extends BaseParams {
   joyID?: JoyIDConfig
 }
 
+export interface RebaseMintResult {
+  rawTx: CKBComponents.RawTransaction
+  rebasedXudtType: CKBComponents.Script
+}
+
 export interface TransferParams extends BaseParams {
   inscriptionId: Byte32
+  toAddress: Address
+  cellCount?: number
+  joyID?: JoyIDConfig
+}
+
+export interface RebasedTransferParams extends BaseParams {
+  rebasedXudtType: CKBComponents.Script
   toAddress: Address
   cellCount?: number
   joyID?: JoyIDConfig

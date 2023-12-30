@@ -112,5 +112,5 @@ export const buildDeployTx = async ({ collector, joyID, address, info, fee }: De
     witnesses,
   }
 
-  return { rawTx, inscriptionId }
+  return { rawTx, inscriptionId, xudtHash: newInfo.xudtHash }
 }

@@ -3,6 +3,7 @@ import { calcXudtCapacity } from './mint'
 import { calcInscriptionInfoCapacity } from './deploy'
 import { InscriptionInfo } from '../types'
 import { calcRebaseMintCapacity } from './rebase'
+import { getXudtHashFromInfo } from './helper'
 
 describe('inscription test cases', () => {
   it('calcXudtCapacity with JoyID lock', async () => {
@@ -42,5 +43,12 @@ describe('inscription test cases', () => {
     )
     expect(BigInt(14500000000)).toBe(rebasedXudtCapacity)
     expect(BigInt(6300000000)).toBe(minChangeCapacity)
+  })
+
+  it('getXudtHashFromInfo', async () => {
+    const xudtHash = getXudtHashFromInfo(
+      '0x0814434b42204669737420496e736372697074696f6e04434b42494cf658d0fea4d2ac028cefe008e97a701f4c3f2ec7207ece34ddfc9dab6046d90040075af0750700000000000000000000e8764817000000000000000000000000',
+    )
+    expect('0x4cf658d0fea4d2ac028cefe008e97a701f4c3f2ec7207ece34ddfc9dab6046d9').toBe(xudtHash)
   })
 })
