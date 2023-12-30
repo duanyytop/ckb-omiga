@@ -1,15 +1,15 @@
 import { Collector } from '../../src/collector'
 import { addressFromP256PrivateKey, keyFromP256Private } from '../../src/utils'
 import { Aggregator } from '../../src/aggregator'
-import { buildDeployTx } from '../../src/inscription'
+import { buildRebaseMintTx, calcInscriptionActualSupply } from '../../src/inscription'
 import { ConnectResponseData } from '@joyid/ckb'
-import { InscriptionInfo, JoyIDConfig } from '../../src'
 import { signSecp256r1Tx } from './secp256r1'
+import { InscriptionInfo, JoyIDConfig } from '../../src'
 
 // SECP256R1 private key
 const TEST_MAIN_PRIVATE_KEY = '0x0000000000000000000000000000000000000000000000000000000000000001'
 
-const deploy = async () => {
+const rebaseMint = async () => {
   const collector = new Collector({
     ckbNodeUrl: 'https://testnet.ckb.dev/rpc',
     ckbIndexerUrl: 'https://testnet.ckb.dev/indexer',
@@ -33,7 +33,13 @@ const deploy = async () => {
     connectData,
   }
 
-  const info: InscriptionInfo = {
+  // the inscriptionId and preXudtHash come from inscription deploy transaction
+  const inscriptionId = '0xcd89d8f36593a9a82501c024c5cdc4877ca11c5b3d5831b3e78334aecb978f0d'
+  const preXudtHash = '0x5fa66c8d5f43914f85d3083e0529931883a5b0a14282f891201069f1b5067908'
+
+  // the actual supply comes from the inscription info-rebase transaction
+  const actualSupply = BigInt('400000000000')
+  const inscriptionInfo: InscriptionInfo = {
     maxSupply: BigInt(2100_0000),
     mintLimit: BigInt(1000),
     xudtHash: '',
@@ -43,15 +49,23 @@ const deploy = async () => {
     symbol: 'CKBI',
   }
 
-  const { rawTx, inscriptionId } = await buildDeployTx({ collector, joyID, address, info })
-  console.log('inscription id: ', inscriptionId)
+  const { rawTx, rebasedXudtType } = await buildRebaseMintTx({
+    collector,
+    joyID,
+    address,
+    preXudtHash,
+    inscriptionId,
+    actualSupply,
+    inscriptionInfo,
+  })
+  // the rebased xudt type script will be used in rebased-transfer
+  console.log('rebased xudt type script', JSON.stringify(rebasedXudtType))
+
   const key = keyFromP256Private(TEST_MAIN_PRIVATE_KEY)
   const signedTx = signSecp256r1Tx(key, rawTx)
 
-  console.log(JSON.stringify(signedTx))
-
   let txHash = await collector.getCkb().rpc.sendTransaction(signedTx, 'passthrough')
-  console.info(`Inscription has been deployed with tx hash ${txHash}`)
+  console.info(`Inscription xudt has been rebased with tx hash ${txHash}`)
 }
 
-deploy()
+rebaseMint()

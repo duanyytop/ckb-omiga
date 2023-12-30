@@ -1,10 +1,10 @@
 import { Collector } from '../../src/collector'
 import { addressFromP256PrivateKey, keyFromP256Private } from '../../src/utils'
 import { Aggregator } from '../../src/aggregator'
-import { buildTransferTx } from '../../src/inscription'
+import { buildMintTx } from '../../src/inscription'
 import { ConnectResponseData } from '@joyid/ckb'
 import { signSecp256r1Tx } from './secp256r1'
-import { JoyIDConfig } from '../../src'
+import { InscriptionInfo, JoyIDConfig } from '../../src'
 
 // SECP256R1 private key
 const TEST_MAIN_PRIVATE_KEY = '0x0000000000000000000000000000000000000000000000000000000000000001'
@@ -33,24 +33,32 @@ const mint = async () => {
     connectData,
   }
 
-  const inscriptionId = '0x96216d91f01b00fe76d1777e6c51ed0dcda74e6f0e6d6100258aca4452731bb8'
-  const toAddress =
-    'ckt1qrfrwcdnvssswdwpn3s9v8fp87emat306ctjwsm3nmlkjg8qyza2cqgqq90dzwjcn3yaxscrpwkpftmw7va8qxfzeggeh93d'
-  const rawTx: CKBComponents.RawTransaction = await buildTransferTx({
+  // the inscriptionId come from inscription deploy transaction
+  const inscriptionId = '0xcd89d8f36593a9a82501c024c5cdc4877ca11c5b3d5831b3e78334aecb978f0d'
+
+  const info: InscriptionInfo = {
+    maxSupply: BigInt(2100_0000),
+    mintLimit: BigInt(1000),
+    xudtHash: '',
+    mintStatus: 0,
+    decimal: 8,
+    name: 'CKB Fist Inscription',
+    symbol: 'CKBI',
+  }
+
+  const mintLimit = info.mintLimit * BigInt(10 ** info.decimal)
+  const rawTx: CKBComponents.RawTransaction = await buildMintTx({
     collector,
     joyID,
     address,
     inscriptionId,
-    toAddress,
-    cellCount: 1,
+    mintLimit,
   })
   const key = keyFromP256Private(TEST_MAIN_PRIVATE_KEY)
   const signedTx = signSecp256r1Tx(key, rawTx)
 
-  console.log(JSON.stringify(signedTx))
-
   let txHash = await collector.getCkb().rpc.sendTransaction(signedTx, 'passthrough')
-  console.info(`Inscription has been transferred with tx hash ${txHash}`)
+  console.info(`Inscription has been minted with tx hash ${txHash}`)
 }
 
 mint()

@@ -33,7 +33,8 @@ const close = async () => {
     connectData,
   }
 
-  const inscriptionId = '0x96216d91f01b00fe76d1777e6c51ed0dcda74e6f0e6d6100258aca4452731bb8'
+  // the inscriptionId come from inscription deploy transaction
+  const inscriptionId = '0xcd89d8f36593a9a82501c024c5cdc4877ca11c5b3d5831b3e78334aecb978f0d'
 
   const rawTx: CKBComponents.RawTransaction = await buildCloseTx({
     collector,
@@ -43,8 +44,6 @@ const close = async () => {
   })
   const key = keyFromP256Private(TEST_MAIN_PRIVATE_KEY)
   const signedTx = signSecp256r1Tx(key, rawTx)
-
-  console.log(JSON.stringify(signedTx))
 
   let txHash = await collector.getCkb().rpc.sendTransaction(signedTx, 'passthrough')
   console.info(`Inscription has been closed with tx hash ${txHash}`)
