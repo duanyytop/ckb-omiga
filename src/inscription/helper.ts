@@ -156,3 +156,13 @@ export const calcRebasedXudtWitness = (
 export const calcActualSupply = (xudtCells: IndexerCell[]) => {
   return xudtCells.map(cell => leToU128(cell.outputData)).reduce((prev, current) => prev + current, BigInt(0))
 }
+
+export const calculateTransactionFee = (txSize: bigint, feeRate: bigint): bigint => {
+  const ratio = BigInt(1000)
+  const base = txSize * feeRate
+  const fee = base / ratio
+  if (fee * ratio < base) {
+    return fee + BigInt(1)
+  }
+  return fee
+}

@@ -5,9 +5,10 @@ import {
   getInscriptionInfoTypeScript,
   getInscriptionInfoDep,
   getCotaTypeScript,
+  MAX_TX_SIZE,
 } from '../constants'
 import { CloseParams, SubkeyUnlockReq } from '../types'
-import { setInscriptionInfoClosed } from './helper'
+import { calculateTransactionFee, setInscriptionInfoClosed } from './helper'
 import { append0x } from '../utils'
 
 export const buildCloseTx = async ({
@@ -15,9 +16,9 @@ export const buildCloseTx = async ({
   joyID,
   address,
   inscriptionId,
-  fee,
+  feeRate,
 }: CloseParams): Promise<CKBComponents.RawTransaction> => {
-  const txFee = fee ?? FEE
+  const txFee = calculateTransactionFee(MAX_TX_SIZE, feeRate) ?? FEE
   const isMainnet = address.startsWith('ckb')
   const inscriptionInfoType = {
     ...getInscriptionInfoTypeScript(isMainnet),

@@ -15,6 +15,7 @@ import {
   MIN_CAPACITY,
   getXudtDep,
   getRebaseDep,
+  MAX_TX_SIZE,
 } from '../constants'
 import {
   ActualSupplyParams,
@@ -31,6 +32,7 @@ import {
   calcXudtTypeScript,
   setInscriptionInfoRebased,
   calcRebasedXudtWitness,
+  calculateTransactionFee,
 } from './helper'
 import { append0x, leToU128, u128ToLe } from '../utils'
 import { calcXudtCapacity } from './mint'
@@ -53,9 +55,9 @@ export const buildInfoRebaseTx = async ({
   inscriptionId,
   preXudtHash,
   actualSupply,
-  fee,
+  feeRate,
 }: InfoRebaseParams): Promise<CKBComponents.RawTransaction> => {
-  const txFee = fee ?? FEE
+  const txFee = calculateTransactionFee(MAX_TX_SIZE, feeRate) ?? FEE
   const isMainnet = address.startsWith('ckb')
   const inscriptionInfoType = {
     ...getInscriptionInfoTypeScript(isMainnet),
@@ -149,10 +151,10 @@ export const buildRebaseMintTx = async ({
   inscriptionInfo,
   preXudtHash,
   actualSupply,
-  fee,
+  feeRate,
 }: RebaseMintParams): Promise<RebaseMintResult> => {
   const isMainnet = address.startsWith('ckb')
-  const txFee = fee ?? FEE
+  const txFee = calculateTransactionFee(MAX_TX_SIZE, feeRate) ?? FEE
   const lock = addressToScript(address)
 
   const { minChangeCapacity } = calcRebaseMintCapacity(address)

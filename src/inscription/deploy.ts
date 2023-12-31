@@ -12,10 +12,17 @@ import {
   getInscriptionInfoTypeScript,
   getInscriptionInfoDep,
   getCotaTypeScript,
+  MAX_TX_SIZE,
 } from '../constants'
 import { Address, SubkeyUnlockReq } from '../types'
 import { DeployParams, DeployResult, InscriptionInfo } from '../types/inscription'
-import { calcInscriptionInfoSize, calcXudtHash, generateInscriptionId, serializeInscriptionInfo } from './helper'
+import {
+  calcInscriptionInfoSize,
+  calcXudtHash,
+  calculateTransactionFee,
+  generateInscriptionId,
+  serializeInscriptionInfo,
+} from './helper'
 import { append0x } from '../utils'
 
 // include lock, inscription info type, capacity and 1ckb for tx fee
@@ -30,9 +37,15 @@ export const calcInscriptionInfoCapacity = (address: Address, info: InscriptionI
   return BigInt(cellSize) * BigInt(100000000)
 }
 
-export const buildDeployTx = async ({ collector, joyID, address, info, fee }: DeployParams): Promise<DeployResult> => {
+export const buildDeployTx = async ({
+  collector,
+  joyID,
+  address,
+  info,
+  feeRate,
+}: DeployParams): Promise<DeployResult> => {
   const isMainnet = address.startsWith('ckb')
-  const txFee = fee ?? FEE
+  const txFee = calculateTransactionFee(MAX_TX_SIZE, feeRate) ?? FEE
   const lock = addressToScript(address)
   const cells = await collector.getCells({ lock })
   if (cells == undefined || cells.length == 0) {

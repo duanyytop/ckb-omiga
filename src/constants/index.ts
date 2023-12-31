@@ -1,4 +1,5 @@
-export const FEE = BigInt(6000)
+export const FEE = BigInt(2500)
+export const MAX_TX_SIZE = BigInt(2000) // bytes
 export const MIN_CAPACITY = BigInt(63) * BigInt(100000000)
 export const WITNESS_NATIVE_MODE = '01'
 export const WITNESS_SUBKEY_MODE = '02'

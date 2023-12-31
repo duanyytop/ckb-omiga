@@ -13,9 +13,10 @@ import {
   getInscriptionDep,
   getCotaTypeScript,
   getInscriptionInfoTypeScript,
+  MAX_TX_SIZE,
 } from '../constants'
 import { Address, MintParams, SubkeyUnlockReq } from '../types'
-import { calcXudtTypeScript, calcMintXudtWitness } from './helper'
+import { calcXudtTypeScript, calcMintXudtWitness, calculateTransactionFee } from './helper'
 import { append0x, u128ToLe } from '../utils'
 
 // include lock, xudt type, capacity and 1ckb for tx fee
@@ -36,10 +37,10 @@ export const buildMintTx = async ({
   address,
   inscriptionId,
   mintLimit,
-  fee,
+  feeRate,
 }: MintParams): Promise<CKBComponents.RawTransaction> => {
   const isMainnet = address.startsWith('ckb')
-  const txFee = fee ?? FEE
+  const txFee = calculateTransactionFee(MAX_TX_SIZE, feeRate) ?? FEE
   const lock = addressToScript(address)
   const cells = await collector.getCells({ lock })
   if (cells == undefined || cells.length == 0) {

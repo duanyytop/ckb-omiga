@@ -22,7 +22,7 @@ export interface JoyIDConfig {
 interface BaseParams {
   collector: Collector
   address: Address
-  fee?: bigint
+  feeRate?: bigint
 }
 
 export interface DeployParams extends BaseParams {
