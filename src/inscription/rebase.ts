@@ -62,9 +62,9 @@ export const buildInfoRebaseTx = async ({
     args: append0x(inscriptionId),
   }
   const lock = addressToScript(address)
-  const [inscriptionInfoCell] = await collector.getCells({ lock, type: inscriptionInfoType })
+  const [inscriptionInfoCell] = await collector.getCells({ type: inscriptionInfoType })
   if (!inscriptionInfoCell) {
-    throw new Error('The address has no inscription info cells')
+    throw new Error('There is no inscription info cell with the given inscription id')
   }
   const inputs: CKBComponents.CellInput[] = [
     {
@@ -173,7 +173,10 @@ export const buildRebaseMintTx = async ({
   let { inputs, capacity: inputCapacity } = collector.collectInputs(cells, minChangeCapacity, txFee)
   inputs = [{ previousOutput: xudtCell.outPoint, since: '0x0' }, ...inputs]
 
-  const [inscriptionInfoCell] = await collector.getCells({ lock, type: inscriptionInfoType })
+  const [inscriptionInfoCell] = await collector.getCells({ type: inscriptionInfoType })
+  if (!inscriptionInfoCell) {
+    throw new Error('There is no inscription info cell with the given inscription id')
+  }
   const inscriptionInfoCellDep: CKBComponents.CellDep = {
     outPoint: inscriptionInfoCell.outPoint,
     depType: 'code',

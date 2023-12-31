@@ -55,9 +55,9 @@ export const buildMintTx = async ({
   }
   const xudtType = calcXudtTypeScript(infoType, isMainnet)
 
-  const [inscriptionInfoCell] = await collector.getCells({ lock, type: infoType })
+  const [inscriptionInfoCell] = await collector.getCells({ type: infoType })
   if (!inscriptionInfoCell) {
-    throw new Error('The address has no inscription info cells')
+    throw new Error('There is no inscription info cell with the given inscription id')
   }
   const inscriptionInfoCellDep: CKBComponents.CellDep = {
     outPoint: inscriptionInfoCell.outPoint,
