@@ -3,7 +3,7 @@ import { calcXudtCapacity } from './mint'
 import { calcInscriptionInfoCapacity } from './deploy'
 import { InscriptionInfo } from '../types'
 import { calcRebaseMintCapacity } from './rebase'
-import { getXudtHashFromInfo } from './helper'
+import { calculateTransactionFee, getXudtHashFromInfo } from './helper'
 
 describe('inscription test cases', () => {
   it('calcXudtCapacity with JoyID lock', async () => {
@@ -50,5 +50,10 @@ describe('inscription test cases', () => {
       '0x0814434b42204669737420496e736372697074696f6e04434b42494cf658d0fea4d2ac028cefe008e97a701f4c3f2ec7207ece34ddfc9dab6046d90040075af0750700000000000000000000e8764817000000000000000000000000',
     )
     expect('0x4cf658d0fea4d2ac028cefe008e97a701f4c3f2ec7207ece34ddfc9dab6046d9').toBe(xudtHash)
+  })
+
+  it('calculateTransactionFee', async () => {
+    const fee = calculateTransactionFee(BigInt(1234))
+    expect(BigInt(2468)).toBe(fee)
   })
 })
