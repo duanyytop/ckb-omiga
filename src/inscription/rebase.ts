@@ -36,6 +36,12 @@ import {
 } from './helper'
 import { append0x, leToU128, u128ToLe } from '../utils'
 import { calcXudtCapacity } from './mint'
+import {
+  InscriptionInfoException,
+  InscriptionXudtException,
+  NoCotaCellException,
+  NoLiveCellException,
+} from '../exceptions'
 
 export const calcInscriptionActualSupply = async ({ collector, inscriptionId, isMainnet }: ActualSupplyParams) => {
   const inscriptionInfoType = {
@@ -66,7 +72,7 @@ export const buildInfoRebaseTx = async ({
   const lock = addressToScript(address)
   const [inscriptionInfoCell] = await collector.getCells({ type: inscriptionInfoType })
   if (!inscriptionInfoCell) {
-    throw new Error('There is no inscription info cell with the given inscription id')
+    throw new InscriptionInfoException('There is no inscription info cell with the given inscription id')
   }
   const inputs: CKBComponents.CellInput[] = [
     {
@@ -108,7 +114,7 @@ export const buildInfoRebaseTx = async ({
     const cotaType = getCotaTypeScript(isMainnet)
     const cotaCells = await collector.getCells({ lock, type: cotaType })
     if (!cotaCells || cotaCells.length === 0) {
-      throw new Error("Cota cell doesn't exist")
+      throw new NoCotaCellException("Cota cell doesn't exist")
     }
     const cotaCell = cotaCells[0]
     const cotaCellDep: CKBComponents.CellDep = {
@@ -166,18 +172,18 @@ export const buildRebaseMintTx = async ({
   const xudtType = calcXudtTypeScript(inscriptionInfoType, isMainnet)
   const [xudtCell] = await collector.getCells({ lock, type: xudtType })
   if (!xudtCell) {
-    throw new Error('The address has no inscription cells and please mint first')
+    throw new InscriptionXudtException('The address has no inscription cells and please mint first')
   }
   const cells = await collector.getCells({ lock })
   if (cells == undefined || cells.length == 0) {
-    throw new Error('The address has no live cells')
+    throw new NoLiveCellException('The address has no live cells')
   }
   let { inputs, capacity: inputCapacity } = collector.collectInputs(cells, minChangeCapacity, txFee)
   inputs = [{ previousOutput: xudtCell.outPoint, since: '0x0' }, ...inputs]
 
   const [inscriptionInfoCell] = await collector.getCells({ type: inscriptionInfoType })
   if (!inscriptionInfoCell) {
-    throw new Error('There is no inscription info cell with the given inscription id')
+    throw new InscriptionInfoException('There is no inscription info cell with the given inscription id')
   }
   const inscriptionInfoCellDep: CKBComponents.CellDep = {
     outPoint: inscriptionInfoCell.outPoint,
@@ -229,7 +235,7 @@ export const buildRebaseMintTx = async ({
     const cotaType = getCotaTypeScript(isMainnet)
     const cotaCells = await collector.getCells({ lock, type: cotaType })
     if (!cotaCells || cotaCells.length === 0) {
-      throw new Error("Cota cell doesn't exist")
+      throw new NoCotaCellException("Cota cell doesn't exist")
     }
     const cotaCell = cotaCells[0]
     const cotaCellDep: CKBComponents.CellDep = {

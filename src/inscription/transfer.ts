@@ -10,6 +10,7 @@ import {
 import { Hex, RebasedTransferParams, SubkeyUnlockReq, TransferParams } from '../types'
 import { calcXudtTypeScript, calculateTransactionFee } from './helper'
 import { append0x } from '../utils'
+import { InscriptionXudtException, NoCotaCellException } from '../exceptions'
 
 export const buildTransferTx = async ({
   collector,
@@ -30,7 +31,7 @@ export const buildTransferTx = async ({
   const lock = addressToScript(address)
   const xudtCells = await collector.getCells({ lock, type: xudtType })
   if (xudtCells.length === 0) {
-    throw new Error('The address has no xudt cells')
+    throw new InscriptionXudtException('The address has no xudt cells')
   }
 
   let inputs: CKBComponents.CellInput[] = []
@@ -78,7 +79,7 @@ export const buildTransferTx = async ({
     const cotaType = getCotaTypeScript(isMainnet)
     const cotaCells = await collector.getCells({ lock, type: cotaType })
     if (!cotaCells || cotaCells.length === 0) {
-      throw new Error("Cota cell doesn't exist")
+      throw new NoCotaCellException("Cota cell doesn't exist")
     }
     const cotaCell = cotaCells[0]
     const cotaCellDep: CKBComponents.CellDep = {
@@ -114,7 +115,7 @@ export const buildRebasedTransferTx = async ({
   const lock = addressToScript(address)
   const rebasedXudtCells = await collector.getCells({ lock, type: rebasedXudtType })
   if (rebasedXudtCells.length === 0) {
-    throw new Error('The address has no rebased xudt cells')
+    throw new InscriptionXudtException('The address has no rebased xudt cells')
   }
 
   let inputs: CKBComponents.CellInput[] = []
@@ -162,7 +163,7 @@ export const buildRebasedTransferTx = async ({
     const cotaType = getCotaTypeScript(isMainnet)
     const cotaCells = await collector.getCells({ lock, type: cotaType })
     if (!cotaCells || cotaCells.length === 0) {
-      throw new Error("Cota cell doesn't exist")
+      throw new NoCotaCellException("Cota cell doesn't exist")
     }
     const cotaCell = cotaCells[0]
     const cotaCellDep: CKBComponents.CellDep = {

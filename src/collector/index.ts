@@ -3,6 +3,7 @@ import CKB from '@nervosnetwork/ckb-sdk-core'
 import { toCamelcase } from '../utils/case-parser'
 import { IndexerCell, CollectResult, IndexerCapacity } from '../types/collector'
 import { MIN_CAPACITY } from '../constants'
+import { CapacityNotEnoughException, IndexerException } from '../exceptions'
 
 export class Collector {
   private ckbNodeUrl: string
@@ -79,7 +80,7 @@ export class Collector {
     ).data
     if (response.error) {
       console.error(response.error)
-      throw Error('Get cells error')
+      throw new IndexerException('Get cells error')
     } else {
       return toCamelcase(response.result.objects)
     }
@@ -115,7 +116,7 @@ export class Collector {
     ).data
     if (response.error) {
       console.error(response.error)
-      throw Error('Get cells capacity error')
+      throw new IndexerException('Get cells capacity error')
     } else {
       return toCamelcase(response.result)
     }
@@ -138,10 +139,10 @@ export class Collector {
       }
     }
     if (sum < needCapacity + fee) {
-      throw Error('Capacity not enough')
+      throw new CapacityNotEnoughException('Capacity not enough')
     }
     if (sum < needCapacity + MIN_CAPACITY + fee) {
-      throw Error('Capacity not enough for change')
+      throw new CapacityNotEnoughException('Capacity not enough for change')
     }
     return { inputs, capacity: sum }
   }

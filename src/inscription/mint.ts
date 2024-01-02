@@ -18,6 +18,12 @@ import {
 import { Address, MintParams, SubkeyUnlockReq } from '../types'
 import { calcXudtTypeScript, calcMintXudtWitness, calculateTransactionFee } from './helper'
 import { append0x, u128ToLe } from '../utils'
+import {
+  CapacityNotEnoughException,
+  InscriptionInfoException,
+  NoCotaCellException,
+  NoLiveCellException,
+} from '../exceptions'
 
 // include lock, xudt type, capacity and 1ckb for tx fee
 export const calcXudtCapacity = (address: Address): bigint => {
@@ -44,7 +50,7 @@ export const buildMintTx = async ({
   const lock = addressToScript(address)
   const cells = await collector.getCells({ lock })
   if (cells == undefined || cells.length == 0) {
-    throw new Error('The address has no live cells')
+    throw new NoLiveCellException('The address has no live cells')
   }
 
   const xudtCapacity = calcXudtCapacity(address)
@@ -58,7 +64,7 @@ export const buildMintTx = async ({
 
   const [inscriptionInfoCell] = await collector.getCells({ type: infoType })
   if (!inscriptionInfoCell) {
-    throw new Error('There is no inscription info cell with the given inscription id')
+    throw new InscriptionInfoException('There is no inscription info cell with the given inscription id')
   }
   const inscriptionInfoCellDep: CKBComponents.CellDep = {
     outPoint: inscriptionInfoCell.outPoint,
@@ -73,7 +79,7 @@ export const buildMintTx = async ({
 
   const changeCapacity = inputCapacity - txFee - xudtCapacity
   if (changeCapacity < MIN_CAPACITY) {
-    throw new Error('Not enough capacity for change cell')
+    throw new CapacityNotEnoughException('Not enough capacity for change cell')
   }
   let outputsData = ['0x']
   let outputs: CKBComponents.CellOutput[] = [
@@ -105,7 +111,7 @@ export const buildMintTx = async ({
     const cotaType = getCotaTypeScript(isMainnet)
     const cotaCells = await collector.getCells({ lock, type: cotaType })
     if (!cotaCells || cotaCells.length === 0) {
-      throw new Error("Cota cell doesn't exist")
+      throw new NoCotaCellException("Cota cell doesn't exist")
     }
     const cotaCell = cotaCells[0]
     const cotaCellDep: CKBComponents.CellDep = {

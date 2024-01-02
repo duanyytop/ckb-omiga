@@ -24,6 +24,7 @@ import {
   serializeInscriptionInfo,
 } from './helper'
 import { append0x } from '../utils'
+import { CapacityNotEnoughException, NoCotaCellException, NoLiveCellException } from '../exceptions'
 
 // include lock, inscription info type, capacity and 1ckb for tx fee
 export const calcInscriptionInfoCapacity = (address: Address, info: InscriptionInfo) => {
@@ -49,7 +50,7 @@ export const buildDeployTx = async ({
   const lock = addressToScript(address)
   const cells = await collector.getCells({ lock })
   if (cells == undefined || cells.length == 0) {
-    throw new Error('The address has no live cells')
+    throw new NoLiveCellException('The address has no live cells')
   }
 
   const infoCapacity = calcInscriptionInfoCapacity(address, info)
@@ -71,7 +72,7 @@ export const buildDeployTx = async ({
   ]
   const changeCapacity = inputCapacity - txFee - infoCapacity
   if (changeCapacity < MIN_CAPACITY) {
-    throw new Error('Not enough capacity for change cell')
+    throw new CapacityNotEnoughException('Not enough capacity for change cell')
   }
   outputs.push({
     capacity: `0x${changeCapacity.toString(16)}`,
@@ -106,7 +107,7 @@ export const buildDeployTx = async ({
     const cotaType = getCotaTypeScript(isMainnet)
     const cotaCells = await collector.getCells({ lock, type: cotaType })
     if (!cotaCells || cotaCells.length === 0) {
-      throw new Error("Cota cell doesn't exist")
+      throw new NoCotaCellException("Cota cell doesn't exist")
     }
     const cotaCell = cotaCells[0]
     const cotaCellDep: CKBComponents.CellDep = {

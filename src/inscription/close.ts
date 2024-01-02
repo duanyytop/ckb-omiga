@@ -10,6 +10,7 @@ import {
 import { CloseParams, SubkeyUnlockReq } from '../types'
 import { calculateTransactionFee, setInscriptionInfoClosed } from './helper'
 import { append0x } from '../utils'
+import { InscriptionInfoException, NoCotaCellException } from '../exceptions'
 
 export const buildCloseTx = async ({
   collector,
@@ -27,7 +28,7 @@ export const buildCloseTx = async ({
   const lock = addressToScript(address)
   const [inscriptionInfoCell] = await collector.getCells({ lock, type: inscriptionInfoType })
   if (!inscriptionInfoCell) {
-    throw new Error('The address has no inscription info cells')
+    throw new InscriptionInfoException('The address has no inscription info cells')
   }
   const inputs: CKBComponents.CellInput[] = [
     {
@@ -67,7 +68,7 @@ export const buildCloseTx = async ({
     const cotaType = getCotaTypeScript(isMainnet)
     const cotaCells = await collector.getCells({ lock, type: cotaType })
     if (!cotaCells || cotaCells.length === 0) {
-      throw new Error("Cota cell doesn't exist")
+      throw new NoCotaCellException("Cota cell doesn't exist")
     }
     const cotaCell = cotaCells[0]
     const cotaCellDep: CKBComponents.CellDep = {
