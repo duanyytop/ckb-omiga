@@ -45,7 +45,7 @@ export const buildDeployTx = async ({
   feeRate,
 }: DeployParams): Promise<DeployResult> => {
   const isMainnet = address.startsWith('ckb')
-  const txFee = calculateTransactionFee(feeRate) ?? FEE
+  const txFee = feeRate ? calculateTransactionFee(feeRate) : FEE
   const lock = addressToScript(address)
   const cells = await collector.getCells({ lock })
   if (cells == undefined || cells.length == 0) {

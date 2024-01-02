@@ -61,7 +61,7 @@ export const buildInfoRebaseTx = async ({
   actualSupply,
   feeRate,
 }: InfoRebaseParams): Promise<CKBComponents.RawTransaction> => {
-  const txFee = calculateTransactionFee(feeRate) ?? FEE
+  const txFee = feeRate ? calculateTransactionFee(feeRate) : FEE
   const isMainnet = address.startsWith('ckb')
   const inscriptionInfoType = {
     ...getInscriptionInfoTypeScript(isMainnet),
@@ -158,7 +158,7 @@ export const buildRebaseMintTx = async ({
   feeRate,
 }: RebaseMintParams): Promise<RebaseMintResult> => {
   const isMainnet = address.startsWith('ckb')
-  const txFee = calculateTransactionFee(feeRate) ?? FEE
+  const txFee = feeRate ? calculateTransactionFee(feeRate) : FEE
   const lock = addressToScript(address)
 
   const { minChangeCapacity } = calcRebaseMintCapacity(address)

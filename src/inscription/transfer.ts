@@ -14,7 +14,7 @@ export const buildTransferTx = async ({
   toAddress,
   feeRate,
 }: TransferParams): Promise<CKBComponents.RawTransaction> => {
-  const txFee = calculateTransactionFee(feeRate) ?? FEE
+  const txFee = feeRate ? calculateTransactionFee(feeRate) : FEE
   const isMainnet = address.startsWith('ckb')
   const infoType = {
     ...getInscriptionInfoTypeScript(isMainnet),
@@ -103,7 +103,7 @@ export const buildRebasedTransferTx = async ({
   toAddress,
   feeRate,
 }: RebasedTransferParams): Promise<CKBComponents.RawTransaction> => {
-  const txFee = calculateTransactionFee(feeRate) ?? FEE
+  const txFee = feeRate ? calculateTransactionFee(feeRate) : FEE
   const isMainnet = address.startsWith('ckb')
   const lock = addressToScript(address)
   const rebasedXudtCells = await collector.getCells({ lock, type: rebasedXudtType })

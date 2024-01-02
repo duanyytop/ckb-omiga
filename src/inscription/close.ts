@@ -18,7 +18,7 @@ export const buildCloseTx = async ({
   inscriptionId,
   feeRate,
 }: CloseParams): Promise<CKBComponents.RawTransaction> => {
-  const txFee = calculateTransactionFee(feeRate) ?? FEE
+  const txFee = feeRate ? calculateTransactionFee(feeRate) : FEE
   const isMainnet = address.startsWith('ckb')
   const inscriptionInfoType = {
     ...getInscriptionInfoTypeScript(isMainnet),
