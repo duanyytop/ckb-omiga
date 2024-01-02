@@ -5,7 +5,14 @@
     "outDir": "./lib",
     "declaration": true,
     "skipLibCheck": true,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "module": "commonjs",
+    "types": ["node"],
+    "strict": true,
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "stripInternal": true,
+    "declarationMap": true
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "**/*.spec.ts", "*/**/debug.ts", "./node_modules/@types/node/index.d.ts", "example"]

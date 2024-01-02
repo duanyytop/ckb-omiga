@@ -23,7 +23,7 @@ export const buildTransferTx = async ({
   const xudtType = calcXudtTypeScript(infoType, isMainnet)
   const lock = addressToScript(address)
   const xudtCells = await collector.getCells({ lock, type: xudtType })
-  if (xudtCells.length === 0) {
+  if (!xudtCells || xudtCells.length === 0) {
     throw new InscriptionXudtException('The address has no xudt cells')
   }
 
@@ -107,7 +107,7 @@ export const buildRebasedTransferTx = async ({
   const isMainnet = address.startsWith('ckb')
   const lock = addressToScript(address)
   const rebasedXudtCells = await collector.getCells({ lock, type: rebasedXudtType })
-  if (rebasedXudtCells.length === 0) {
+  if (!rebasedXudtCells || rebasedXudtCells.length === 0) {
     throw new InscriptionXudtException('The address has no rebased xudt cells')
   }
 

@@ -61,9 +61,6 @@ devDependencies:
   '@types/node':
     specifier: 20.10.5
     version: 20.10.5
-  '@types/node-rsa':
-    specifier: ^1.1.4
-    version: 1.1.4
   '@typescript-eslint/parser':
     specifier: 6.16.0
     version: 6.16.0(eslint@8.56.0)(typescript@4.7.4)
@@ -905,13 +902,6 @@ packages:
     resolution:
       { integrity: sha512-OvlIYQK9tNneDlS0VN54LLd5uiPCBOp7gS5Z0f1mjoJYBrtStzgmJBxONW3U6OZqdtNzZPmn9BS/7WI7BFFcFQ== }
     dev: false
-
-  /@types/node-rsa@1.1.4:
-    resolution:
-      { integrity: sha512-dB0ECel6JpMnq5ULvpUTunx3yNm8e/dIkv8Zu9p2c8me70xIRUUG3q+qXRwcSf9rN3oqamv4116iHy90dJGRpA== }
-    dependencies:
-      '@types/node': 20.10.5
-    dev: true
 
   /@types/node@18.15.13:
     resolution:

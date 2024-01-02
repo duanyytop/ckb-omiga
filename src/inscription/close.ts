@@ -25,27 +25,27 @@ export const buildCloseTx = async ({
     args: append0x(inscriptionId),
   }
   const lock = addressToScript(address)
-  const [inscriptionInfoCell] = await collector.getCells({ lock, type: inscriptionInfoType })
-  if (!inscriptionInfoCell) {
+  const inscriptionInfoCells = await collector.getCells({ lock, type: inscriptionInfoType })
+  if (!inscriptionInfoCells || inscriptionInfoCells.length === 0) {
     throw new InscriptionInfoException('The address has no inscription info cells')
   }
   const inputs: CKBComponents.CellInput[] = [
     {
-      previousOutput: inscriptionInfoCell.outPoint,
+      previousOutput: inscriptionInfoCells[0].outPoint,
       since: '0x0',
     },
   ]
-  const outputCapacity = BigInt(append0x(inscriptionInfoCell.output.capacity)) - txFee
+  const outputCapacity = BigInt(append0x(inscriptionInfoCells[0].output.capacity)) - txFee
   const outputs: CKBComponents.CellOutput[] = [
     {
-      ...inscriptionInfoCell.output,
+      ...inscriptionInfoCells[0].output,
       capacity: `0x${outputCapacity.toString(16)}`,
     },
   ]
 
   let cellDeps = [getJoyIDCellDep(isMainnet), getInscriptionInfoDep(isMainnet)]
 
-  const inscriptionInfo = setInscriptionInfoClosed(inscriptionInfoCell.outputData)
+  const inscriptionInfo = setInscriptionInfoClosed(inscriptionInfoCells[0].outputData)
 
   const emptyWitness = { lock: '', inputType: '', outputType: '' }
   let witnesses = [serializeWitnessArgs(emptyWitness)]

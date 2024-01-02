@@ -48,6 +48,9 @@ export const calcInscriptionActualSupply = async ({ collector, inscriptionId, is
   }
   const preXudtType = calcXudtTypeScript(inscriptionInfoType, isMainnet)
   const preXudtCells = await collector.getCells({ type: preXudtType })
+  if (!preXudtCells || preXudtCells.length === 0) {
+    throw new InscriptionInfoException('Cannot find any previous xudt cell with the given inscription id')
+  }
   const actualSupply = calcActualSupply(preXudtCells)
   return actualSupply
 }
@@ -68,21 +71,21 @@ export const buildInfoRebaseTx = async ({
     args: append0x(inscriptionId),
   }
   const lock = addressToScript(address)
-  const [inscriptionInfoCell] = await collector.getCells({ type: inscriptionInfoType })
-  if (!inscriptionInfoCell) {
+  const inscriptionInfoCells = await collector.getCells({ type: inscriptionInfoType })
+  if (!inscriptionInfoCells || inscriptionInfoCells.length === 0) {
     throw new InscriptionInfoException('There is no inscription info cell with the given inscription id')
   }
   const inputs: CKBComponents.CellInput[] = [
     {
-      previousOutput: inscriptionInfoCell.outPoint,
+      previousOutput: inscriptionInfoCells[0].outPoint,
       since: '0x0',
     },
   ]
 
-  const outputCapacity = BigInt(append0x(inscriptionInfoCell.output.capacity)) - txFee
+  const outputCapacity = BigInt(append0x(inscriptionInfoCells[0].output.capacity)) - txFee
   const outputs: CKBComponents.CellOutput[] = [
     {
-      ...inscriptionInfoCell.output,
+      ...inscriptionInfoCells[0].output,
       capacity: `0x${outputCapacity.toString(16)}`,
     },
   ]
@@ -90,11 +93,11 @@ export const buildInfoRebaseTx = async ({
   let cellDeps = [getJoyIDCellDep(isMainnet), getInscriptionInfoDep(isMainnet)]
 
   const rebasedXudtHash = calcRebasedXudtHash(inscriptionInfoType, preXudtHash, actualSupply, isMainnet)
-  const inscriptionInfo = setInscriptionInfoRebased(inscriptionInfoCell.outputData, rebasedXudtHash)
+  const inscriptionInfo = setInscriptionInfoRebased(inscriptionInfoCells[0].outputData, rebasedXudtHash)
 
   const emptyWitness = { lock: '', inputType: '', outputType: '' }
   let witnesses = [serializeWitnessArgs(emptyWitness)]
-  if (joyID.connectData.keyType === 'sub_key') {
+  if (joyID && joyID.connectData.keyType === 'sub_key') {
     const pubkeyHash = append0x(blake160(append0x(joyID.connectData.pubkey), 'hex'))
     const req: SubkeyUnlockReq = {
       lockScript: serializeScript(lock),
@@ -168,8 +171,8 @@ export const buildRebaseMintTx = async ({
     args: append0x(inscriptionId),
   }
   const xudtType = calcXudtTypeScript(inscriptionInfoType, isMainnet)
-  const [xudtCell] = await collector.getCells({ lock, type: xudtType })
-  if (!xudtCell) {
+  const xudtCells = await collector.getCells({ lock, type: xudtType })
+  if (!xudtCells || xudtCells.length === 0) {
     throw new InscriptionXudtException('The address has no inscription cells and please mint first')
   }
   const cells = await collector.getCells({ lock })
@@ -177,14 +180,14 @@ export const buildRebaseMintTx = async ({
     throw new NoLiveCellException('The address has no live cells')
   }
   let { inputs, capacity: inputCapacity } = collector.collectInputs(cells, minChangeCapacity, txFee)
-  inputs = [{ previousOutput: xudtCell.outPoint, since: '0x0' }, ...inputs]
+  inputs = [{ previousOutput: xudtCells[0].outPoint, since: '0x0' }, ...inputs]
 
-  const [inscriptionInfoCell] = await collector.getCells({ type: inscriptionInfoType })
-  if (!inscriptionInfoCell) {
+  const inscriptionInfoCells = await collector.getCells({ type: inscriptionInfoType })
+  if (!inscriptionInfoCells || inscriptionInfoCells.length === 0) {
     throw new InscriptionInfoException('There is no inscription info cell with the given inscription id')
   }
   const inscriptionInfoCellDep: CKBComponents.CellDep = {
-    outPoint: inscriptionInfoCell.outPoint,
+    outPoint: inscriptionInfoCells[0].outPoint,
     depType: 'code',
   }
   let cellDeps = [getJoyIDCellDep(isMainnet), getXudtDep(isMainnet), getRebaseDep(isMainnet), inscriptionInfoCellDep]
@@ -198,13 +201,13 @@ export const buildRebaseMintTx = async ({
       lock,
     },
     {
-      ...xudtCell.output,
+      ...xudtCells[0].output,
       type: rebasedXudtType,
     },
   ]
 
   const exceptedSupply = inscriptionInfo.maxSupply * BigInt(10 ** inscriptionInfo.decimal)
-  const preAmount = leToU128(xudtCell.outputData)
+  const preAmount = leToU128(xudtCells[0].outputData)
 
   const expectedAmount = new BigNumber((preAmount * exceptedSupply).toString(), 10)
   const actualAmount = expectedAmount.dividedBy(new BigNumber(actualSupply.toString(), 10)).floor()

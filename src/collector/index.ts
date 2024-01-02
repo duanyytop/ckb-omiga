@@ -49,7 +49,7 @@ export class Collector {
         script_search_mode: 'exact',
         filter,
       }
-    } else {
+    } else if (type) {
       param = {
         script: {
           code_hash: type.codeHash,
