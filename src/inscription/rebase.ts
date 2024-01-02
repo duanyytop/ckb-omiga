@@ -12,10 +12,8 @@ import {
   getInscriptionInfoTypeScript,
   getInscriptionInfoDep,
   getCotaTypeScript,
-  MIN_CAPACITY,
   getXudtDep,
   getRebaseDep,
-  MAX_TX_SIZE,
 } from '../constants'
 import {
   ActualSupplyParams,
@@ -63,7 +61,7 @@ export const buildInfoRebaseTx = async ({
   actualSupply,
   feeRate,
 }: InfoRebaseParams): Promise<CKBComponents.RawTransaction> => {
-  const txFee = calculateTransactionFee(MAX_TX_SIZE, feeRate) ?? FEE
+  const txFee = calculateTransactionFee(feeRate) ?? FEE
   const isMainnet = address.startsWith('ckb')
   const inscriptionInfoType = {
     ...getInscriptionInfoTypeScript(isMainnet),
@@ -160,7 +158,7 @@ export const buildRebaseMintTx = async ({
   feeRate,
 }: RebaseMintParams): Promise<RebaseMintResult> => {
   const isMainnet = address.startsWith('ckb')
-  const txFee = calculateTransactionFee(MAX_TX_SIZE, feeRate) ?? FEE
+  const txFee = calculateTransactionFee(feeRate) ?? FEE
   const lock = addressToScript(address)
 
   const { minChangeCapacity } = calcRebaseMintCapacity(address)

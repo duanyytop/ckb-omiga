@@ -8,9 +8,10 @@ import {
   serializeScript,
   serializeWitnessArgs,
 } from '@nervosnetwork/ckb-sdk-utils'
+import BigNumber from 'bignumber.js'
 import { append0x, leToU128, remove0x, u128ToLe, u64ToLe, u8ToHex, utf8ToHex } from '../utils'
 import { Byte32, IndexerCell, InscriptionInfo } from '../types'
-import { getXudtTypeScript, getInscriptionTypeScript, getRebaseTypeScript } from '../constants'
+import { getXudtTypeScript, getInscriptionTypeScript, getRebaseTypeScript, MAX_TX_SIZE } from '../constants'
 
 export const generateInscriptionId = (firstInput: CKBComponents.CellInput, outputIndex: number) => {
   const input = hexToBytes(serializeInput(firstInput))
@@ -157,12 +158,8 @@ export const calcActualSupply = (xudtCells: IndexerCell[]) => {
   return xudtCells.map(cell => leToU128(cell.outputData)).reduce((prev, current) => prev + current, BigInt(0))
 }
 
-export const calculateTransactionFee = (txSize: bigint, feeRate: bigint): bigint => {
-  const ratio = BigInt(1000)
-  const base = txSize * feeRate
-  const fee = base / ratio
-  if (fee * ratio < base) {
-    return fee + BigInt(1)
-  }
-  return fee
+export const calculateTransactionFee = (feeRate: bigint): bigint => {
+  const ratio = new BigNumber(1000)
+  const fee = new BigNumber(MAX_TX_SIZE).mul(new BigNumber(feeRate.toString())).div(ratio)
+  return BigInt(fee.ceil().toString())
 }

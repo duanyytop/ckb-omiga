@@ -1,12 +1,5 @@
 import { addressToScript, blake160, serializeScript, serializeWitnessArgs } from '@nervosnetwork/ckb-sdk-utils'
-import {
-  FEE,
-  getJoyIDCellDep,
-  getInscriptionInfoTypeScript,
-  getCotaTypeScript,
-  getXudtDep,
-  MAX_TX_SIZE,
-} from '../constants'
+import { FEE, getJoyIDCellDep, getInscriptionInfoTypeScript, getCotaTypeScript, getXudtDep } from '../constants'
 import { Hex, RebasedTransferParams, SubkeyUnlockReq, TransferParams } from '../types'
 import { calcXudtTypeScript, calculateTransactionFee } from './helper'
 import { append0x } from '../utils'
@@ -21,7 +14,7 @@ export const buildTransferTx = async ({
   toAddress,
   feeRate,
 }: TransferParams): Promise<CKBComponents.RawTransaction> => {
-  const txFee = calculateTransactionFee(MAX_TX_SIZE, feeRate) ?? FEE
+  const txFee = calculateTransactionFee(feeRate) ?? FEE
   const isMainnet = address.startsWith('ckb')
   const infoType = {
     ...getInscriptionInfoTypeScript(isMainnet),
@@ -110,7 +103,7 @@ export const buildRebasedTransferTx = async ({
   toAddress,
   feeRate,
 }: RebasedTransferParams): Promise<CKBComponents.RawTransaction> => {
-  const txFee = calculateTransactionFee(MAX_TX_SIZE, feeRate) ?? FEE
+  const txFee = calculateTransactionFee(feeRate) ?? FEE
   const isMainnet = address.startsWith('ckb')
   const lock = addressToScript(address)
   const rebasedXudtCells = await collector.getCells({ lock, type: rebasedXudtType })
