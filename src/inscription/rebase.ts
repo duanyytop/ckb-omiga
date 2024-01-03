@@ -210,7 +210,9 @@ export const buildRebaseMintTx = async ({
   const preAmount = leToU128(xudtCells[0].outputData)
 
   const expectedAmount = BigNumber((preAmount * exceptedSupply).toString(), 10)
-  const actualAmount = expectedAmount.dividedBy(BigNumber(actualSupply.toString(), 10)).toFixed(0)
+  const actualAmount = expectedAmount
+    .dividedBy(BigNumber(actualSupply.toString(), 10))
+    .toFixed(0, BigNumber.ROUND_FLOOR)
   const rebasedXudtCellData = append0x(u128ToLe(BigInt(actualAmount)))
 
   const emptyWitness = { lock: '', inputType: '', outputType: '' }

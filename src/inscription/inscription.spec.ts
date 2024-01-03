@@ -4,6 +4,7 @@ import { calcInscriptionInfoCapacity } from './deploy'
 import { InscriptionInfo } from '../types'
 import { calcRebaseMintCapacity } from './rebase'
 import { calculateTransactionFee, getXudtHashFromInfo } from './helper'
+import BigNumber from 'bignumber.js'
 
 describe('inscription test cases', () => {
   it('calcXudtCapacity with JoyID lock', async () => {
@@ -55,5 +56,31 @@ describe('inscription test cases', () => {
   it('calculateTransactionFee', async () => {
     const fee = calculateTransactionFee(BigInt(1234))
     expect(BigInt(2468)).toBe(fee)
+  })
+
+  it('rebase amount', async () => {
+    const preAmount = BigInt(34000)
+    const exceptedSupply = BigInt(2100_0000)
+    const actualSupply = BigInt(234_8793_4000)
+
+    const expectedAmount = BigNumber((preAmount * exceptedSupply).toString(), 10)
+    const actualAmount = expectedAmount
+      .dividedBy(BigNumber(actualSupply.toString(), 10))
+      .toFixed(0, BigNumber.ROUND_FLOOR)
+    // 30.398586780770074
+    expect('30').toBe(actualAmount)
+  })
+
+  it('rebase amount', async () => {
+    const preAmount = BigInt(15000)
+    const exceptedSupply = BigInt(2100_0000)
+    const actualSupply = BigInt(1237_9000)
+
+    const expectedAmount = BigNumber((preAmount * exceptedSupply).toString(), 10)
+    const actualAmount = expectedAmount
+      .dividedBy(BigNumber(actualSupply.toString(), 10))
+      .toFixed(0, BigNumber.ROUND_FLOOR)
+    // 25446.320381290894
+    expect('25446').toBe(actualAmount)
   })
 })
