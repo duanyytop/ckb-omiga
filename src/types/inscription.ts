@@ -65,6 +65,7 @@ export interface RebaseMintParams extends BaseParams {
   inscriptionId: Byte32
   preXudtHash: Byte32
   actualSupply: bigint
+  cellCount?: number
   joyID?: JoyIDConfig
 }
 

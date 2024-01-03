@@ -25,7 +25,7 @@ import {
 import { append0x } from '../utils'
 import { CapacityNotEnoughException, NoCotaCellException, NoLiveCellException } from '../exceptions'
 
-// include lock, inscription info type, capacity and 1ckb for tx fee
+// include lock, inscription info type, capacity and 6000 shannon for tx fee
 export const calcInscriptionInfoCapacity = (address: Address, info: InscriptionInfo) => {
   const lock = addressToScript(address)
   const argsSize = hexToBytes(lock.args).length
@@ -33,8 +33,8 @@ export const calcInscriptionInfoCapacity = (address: Address, info: InscriptionI
   const inscriptionInfoTypeSize = 32 + 32 + 1
   const capacitySize = 8
   const xudtDataSize = calcInscriptionInfoSize(info)
-  const cellSize = lockSize + inscriptionInfoTypeSize + capacitySize + xudtDataSize + 1
-  return BigInt(cellSize) * BigInt(100000000)
+  const cellSize = lockSize + inscriptionInfoTypeSize + capacitySize + xudtDataSize
+  return BigInt(cellSize) * BigInt(10000_0000) + BigInt(6000)
 }
 
 export const buildDeployTx = async ({
@@ -48,7 +48,7 @@ export const buildDeployTx = async ({
   const txFee = feeRate ? calculateTransactionFee(feeRate) : FEE
   const lock = addressToScript(address)
   const cells = await collector.getCells({ lock })
-  if (cells == undefined || cells.length == 0) {
+  if (!cells || cells.length === 0) {
     throw new NoLiveCellException('The address has no live cells')
   }
 

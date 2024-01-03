@@ -33,7 +33,7 @@ export const calcXudtCapacity = (address: Address): bigint => {
   const capacitySize = 8
   const xudtDataSize = 16
   const cellSize = lockSize + xudtTypeSize + capacitySize + xudtDataSize + 1
-  return BigInt(cellSize) * BigInt(100000000)
+  return BigInt(cellSize) * BigInt(10000_0000)
 }
 
 export const buildMintTx = async ({
@@ -48,7 +48,7 @@ export const buildMintTx = async ({
   const txFee = feeRate ? calculateTransactionFee(feeRate) : FEE
   const lock = addressToScript(address)
   const cells = await collector.getCells({ lock })
-  if (cells == undefined || cells.length == 0) {
+  if (!cells || cells.length === 0) {
     throw new NoLiveCellException('The address has no live cells')
   }
 

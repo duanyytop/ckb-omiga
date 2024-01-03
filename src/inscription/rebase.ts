@@ -147,7 +147,7 @@ export const calcSingleRebaseMintCapacity = (
   const argsSize = hexToBytes(lock.args).length
   const lockSize = 32 + 1 + argsSize
   const capacitySize = 8
-  const minChangeCapacity = BigInt(lockSize + capacitySize) * BigInt(100000000)
+  const minChangeCapacity = BigInt(lockSize + capacitySize) * BigInt(10000_0000)
 
   return { rebasedXudtCapacity, minChangeCapacity }
 }
@@ -159,6 +159,7 @@ export const buildRebaseMintTx = async ({
   inscriptionInfo,
   preXudtHash,
   actualSupply,
+  cellCount,
   feeRate,
 }: RebaseMintParams): Promise<RebaseMintResult> => {
   const isMainnet = address.startsWith('ckb')
@@ -174,14 +175,15 @@ export const buildRebaseMintTx = async ({
   if (!xudtCells || xudtCells.length === 0) {
     throw new InscriptionXudtException('The address has no inscription cells and please mint first')
   }
-  const txFee = calculateRebaseTxFee(xudtCells.length, feeRate)
+  const xudtCellCount = cellCount && cellCount > 0 ? Math.min(xudtCells.length, cellCount) : xudtCells.length
+  const txFee = calculateRebaseTxFee(xudtCellCount, feeRate)
 
   const cells = await collector.getCells({ lock })
-  if (cells == undefined || cells.length == 0) {
+  if (!cells || cells.length === 0) {
     throw new NoLiveCellException('The address has no live cells')
   }
   let { inputs, capacity: inputCapacity } = collector.collectInputs(cells, minChangeCapacity, txFee)
-  const xudtInputs = xudtCells.map(cell => ({ previousOutput: cell.outPoint, since: '0x0' }))
+  const xudtInputs = xudtCells.slice(0, cellCount).map(cell => ({ previousOutput: cell.outPoint, since: '0x0' }))
   inputs = [...xudtInputs, ...inputs]
 
   const inscriptionInfoCells = await collector.getCells({ type: inscriptionInfoType })
@@ -196,7 +198,7 @@ export const buildRebaseMintTx = async ({
 
   const rebasedXudtType = calcRebasedXudtType(inscriptionInfoType, preXudtHash, actualSupply, isMainnet)
 
-  const xudtOutputs = xudtCells.map(cell => ({
+  const xudtOutputs = xudtCells.slice(0, cellCount).map(cell => ({
     ...cell.output,
     type: rebasedXudtType,
   }))
@@ -211,7 +213,7 @@ export const buildRebaseMintTx = async ({
 
   const exceptedSupply = inscriptionInfo.maxSupply * BigInt(10 ** inscriptionInfo.decimal)
 
-  const rebasedXudtCellDataList = xudtCells.map(cell => {
+  const rebasedXudtCellDataList = xudtCells.slice(0, cellCount).map(cell => {
     const preAmount = leToU128(cell.outputData)
     const expectedAmount = BigNumber((preAmount * exceptedSupply).toString(), 10)
     const actualAmount = expectedAmount

@@ -1,6 +1,6 @@
 export const FEE = BigInt(2500)
 export const MAX_TX_SIZE = 2000 // bytes
-export const MIN_CAPACITY = BigInt(63) * BigInt(100000000)
+export const MIN_CAPACITY = BigInt(63) * BigInt(10000_0000)
 export const WITNESS_NATIVE_MODE = '01'
 export const WITNESS_SUBKEY_MODE = '02'
 export const SECP256R1_PUBKEY_SIG_LEN = (1 + 64 + 64) * 2
