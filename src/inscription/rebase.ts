@@ -31,6 +31,7 @@ import {
   setInscriptionInfoRebased,
   calcRebasedXudtWitness,
   calculateTransactionFee,
+  calculateRebaseTxFee,
 } from './helper'
 import { append0x, leToU128, u128ToLe } from '../utils'
 import { calcXudtCapacity } from './mint'
@@ -150,8 +151,6 @@ export const calcSingleRebaseMintCapacity = (
 
   return { rebasedXudtCapacity, minChangeCapacity }
 }
-const SingleXudtCapacity = 500
-const BaseFeeRate = BigInt(1000)
 export const buildRebaseMintTx = async ({
   collector,
   joyID,
@@ -175,9 +174,7 @@ export const buildRebaseMintTx = async ({
   if (!xudtCells || xudtCells.length === 0) {
     throw new InscriptionXudtException('The address has no inscription cells and please mint first')
   }
-  const txSize = xudtCells.length * SingleXudtCapacity
-  const rate = feeRate ?? BaseFeeRate
-  const txFee = calculateTransactionFee(rate, txSize)
+  const txFee = calculateRebaseTxFee(xudtCells.length, feeRate)
 
   const cells = await collector.getCells({ lock })
   if (cells == undefined || cells.length == 0) {

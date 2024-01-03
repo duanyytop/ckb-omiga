@@ -164,3 +164,14 @@ export const calculateTransactionFee = (feeRate: bigint, txSize?: number): bigin
   const fee = BigNumber(transactionSize).multipliedBy(BigNumber(feeRate.toString())).div(ratio)
   return BigInt(fee.toFixed(0, BigNumber.ROUND_CEIL).toString())
 }
+
+const SingleXudtCapacity = 500
+const BaseFeeRate = BigInt(1000)
+export const calculateRebaseTxFee = (count: number, feeRate?: bigint) => {
+  let txSize = 1500
+  if (count > 1) {
+    txSize += (count - 1) * SingleXudtCapacity
+  }
+  const rate = feeRate ?? BaseFeeRate
+  return calculateTransactionFee(rate, txSize)
+}

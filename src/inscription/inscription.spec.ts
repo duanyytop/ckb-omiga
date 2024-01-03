@@ -3,7 +3,7 @@ import { calcXudtCapacity } from './mint'
 import { calcInscriptionInfoCapacity } from './deploy'
 import { InscriptionInfo } from '../types'
 import { calcSingleRebaseMintCapacity } from './rebase'
-import { calculateTransactionFee, getXudtHashFromInfo } from './helper'
+import { calculateRebaseTxFee, calculateTransactionFee, getXudtHashFromInfo } from './helper'
 import BigNumber from 'bignumber.js'
 
 describe('inscription test cases', () => {
@@ -56,6 +56,11 @@ describe('inscription test cases', () => {
   it('calculateTransactionFee', async () => {
     const fee = calculateTransactionFee(BigInt(1234))
     expect(BigInt(2468)).toBe(fee)
+  })
+
+  it('calculateRebaseTxFee', async () => {
+    const fee = calculateRebaseTxFee(13, BigInt(1234))
+    expect(BigInt(9255)).toBe(fee)
   })
 
   it('rebase amount', async () => {
