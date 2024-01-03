@@ -24,8 +24,8 @@ dependencies:
     specifier: ^1.6.2
     version: 1.6.2
   bignumber.js:
-    specifier: 4.0.4
-    version: 4.0.4
+    specifier: ^9.1.1
+    version: 9.1.2
   bn.js:
     specifier: ^5.2.1
     version: 5.2.1
@@ -1272,9 +1272,9 @@ packages:
     engines: { node: '>=0.6' }
     dev: true
 
-  /bignumber.js@4.0.4:
+  /bignumber.js@9.1.2:
     resolution:
-      { integrity: sha512-LDXpJKVzEx2/OqNbG9mXBNvHuiRL4PzHCGfnANHMJ+fv68Ads3exDVJeGDJws+AoNEuca93bU3q+S0woeUaCdg== }
+      { integrity: sha512-2/mKyZH9K85bzOEfhXDBFZTGd1CTs+5IHpeFQo9luiBG7hghdC851Pj2WAhb6E3R6b9tZj/XKhbg4fum+Kepug== }
     dev: false
 
   /blake2b-wasm@2.4.0:

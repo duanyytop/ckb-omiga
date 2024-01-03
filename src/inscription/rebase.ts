@@ -209,9 +209,9 @@ export const buildRebaseMintTx = async ({
   const exceptedSupply = inscriptionInfo.maxSupply * BigInt(10 ** inscriptionInfo.decimal)
   const preAmount = leToU128(xudtCells[0].outputData)
 
-  const expectedAmount = new BigNumber((preAmount * exceptedSupply).toString(), 10)
-  const actualAmount = expectedAmount.dividedBy(new BigNumber(actualSupply.toString(), 10)).floor()
-  const rebasedXudeCellData = append0x(u128ToLe(actualAmount))
+  const expectedAmount = BigNumber((preAmount * exceptedSupply).toString(), 10)
+  const actualAmount = expectedAmount.dividedBy(BigNumber(actualSupply.toString(), 10)).toFixed(0)
+  const rebasedXudtCellData = append0x(u128ToLe(BigInt(actualAmount)))
 
   const emptyWitness = { lock: '', inputType: '', outputType: '' }
   let witnesses = [
@@ -251,7 +251,7 @@ export const buildRebaseMintTx = async ({
     headerDeps: [],
     inputs,
     outputs,
-    outputsData: ['0x', rebasedXudeCellData],
+    outputsData: ['0x', rebasedXudtCellData],
     witnesses,
   }
 
