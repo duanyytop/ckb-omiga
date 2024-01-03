@@ -137,7 +137,7 @@ export const buildInfoRebaseTx = async ({
   return rawTx
 }
 
-export const calcRebaseMintCapacity = (
+export const calcSingleRebaseMintCapacity = (
   address: Address,
 ): { rebasedXudtCapacity: bigint; minChangeCapacity: bigint } => {
   const rebasedXudtCapacity = calcXudtCapacity(address)
@@ -150,6 +150,8 @@ export const calcRebaseMintCapacity = (
 
   return { rebasedXudtCapacity, minChangeCapacity }
 }
+const SingleXudtCapacity = 500
+const BaseFeeRate = BigInt(1000)
 export const buildRebaseMintTx = async ({
   collector,
   joyID,
@@ -161,10 +163,8 @@ export const buildRebaseMintTx = async ({
   feeRate,
 }: RebaseMintParams): Promise<RebaseMintResult> => {
   const isMainnet = address.startsWith('ckb')
-  const txFee = feeRate ? calculateTransactionFee(feeRate) : FEE
   const lock = addressToScript(address)
-
-  const { minChangeCapacity } = calcRebaseMintCapacity(address)
+  const { minChangeCapacity } = calcSingleRebaseMintCapacity(address)
 
   const inscriptionInfoType = {
     ...getInscriptionInfoTypeScript(isMainnet),
@@ -175,12 +175,17 @@ export const buildRebaseMintTx = async ({
   if (!xudtCells || xudtCells.length === 0) {
     throw new InscriptionXudtException('The address has no inscription cells and please mint first')
   }
+  const txSize = xudtCells.length * SingleXudtCapacity
+  const rate = feeRate ?? BaseFeeRate
+  const txFee = calculateTransactionFee(rate, txSize)
+
   const cells = await collector.getCells({ lock })
   if (cells == undefined || cells.length == 0) {
     throw new NoLiveCellException('The address has no live cells')
   }
   let { inputs, capacity: inputCapacity } = collector.collectInputs(cells, minChangeCapacity, txFee)
-  inputs = [{ previousOutput: xudtCells[0].outPoint, since: '0x0' }, ...inputs]
+  const xudtInputs = xudtCells.map(cell => ({ previousOutput: cell.outPoint, since: '0x0' }))
+  inputs = [...xudtInputs, ...inputs]
 
   const inscriptionInfoCells = await collector.getCells({ type: inscriptionInfoType })
   if (!inscriptionInfoCells || inscriptionInfoCells.length === 0) {
@@ -194,26 +199,29 @@ export const buildRebaseMintTx = async ({
 
   const rebasedXudtType = calcRebasedXudtType(inscriptionInfoType, preXudtHash, actualSupply, isMainnet)
 
+  const xudtOutputs = xudtCells.map(cell => ({
+    ...cell.output,
+    type: rebasedXudtType,
+  }))
   const changeCapacity = inputCapacity - txFee
   let outputs: CKBComponents.CellOutput[] = [
     {
       capacity: `0x${changeCapacity.toString(16)}`,
       lock,
     },
-    {
-      ...xudtCells[0].output,
-      type: rebasedXudtType,
-    },
+    ...xudtOutputs,
   ]
 
   const exceptedSupply = inscriptionInfo.maxSupply * BigInt(10 ** inscriptionInfo.decimal)
-  const preAmount = leToU128(xudtCells[0].outputData)
 
-  const expectedAmount = BigNumber((preAmount * exceptedSupply).toString(), 10)
-  const actualAmount = expectedAmount
-    .dividedBy(BigNumber(actualSupply.toString(), 10))
-    .toFixed(0, BigNumber.ROUND_FLOOR)
-  const rebasedXudtCellData = append0x(u128ToLe(BigInt(actualAmount)))
+  const rebasedXudtCellDataList = xudtCells.map(cell => {
+    const preAmount = leToU128(cell.outputData)
+    const expectedAmount = BigNumber((preAmount * exceptedSupply).toString(), 10)
+    const actualAmount = expectedAmount
+      .dividedBy(BigNumber(actualSupply.toString(), 10))
+      .toFixed(0, BigNumber.ROUND_FLOOR)
+    return append0x(u128ToLe(BigInt(actualAmount)))
+  })
 
   const emptyWitness = { lock: '', inputType: '', outputType: '' }
   let witnesses = [
@@ -253,7 +261,7 @@ export const buildRebaseMintTx = async ({
     headerDeps: [],
     inputs,
     outputs,
-    outputsData: ['0x', rebasedXudtCellData],
+    outputsData: ['0x', ...rebasedXudtCellDataList],
     witnesses,
   }
 

@@ -158,8 +158,9 @@ export const calcActualSupply = (xudtCells: IndexerCell[]) => {
   return xudtCells.map(cell => leToU128(cell.outputData)).reduce((prev, current) => prev + current, BigInt(0))
 }
 
-export const calculateTransactionFee = (feeRate: bigint): bigint => {
+export const calculateTransactionFee = (feeRate: bigint, txSize?: number): bigint => {
   const ratio = BigNumber(1000)
-  const fee = BigNumber(MAX_TX_SIZE).multipliedBy(BigNumber(feeRate.toString())).div(ratio)
+  const transactionSize = txSize ?? MAX_TX_SIZE
+  const fee = BigNumber(transactionSize).multipliedBy(BigNumber(feeRate.toString())).div(ratio)
   return BigInt(fee.toFixed(0, BigNumber.ROUND_CEIL).toString())
 }

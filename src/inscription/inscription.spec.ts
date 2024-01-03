@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { calcXudtCapacity } from './mint'
 import { calcInscriptionInfoCapacity } from './deploy'
 import { InscriptionInfo } from '../types'
-import { calcRebaseMintCapacity } from './rebase'
+import { calcSingleRebaseMintCapacity } from './rebase'
 import { calculateTransactionFee, getXudtHashFromInfo } from './helper'
 import BigNumber from 'bignumber.js'
 
@@ -39,7 +39,7 @@ describe('inscription test cases', () => {
   })
 
   it('calcRebaseMintCapacity with JoyID lock', async () => {
-    const { rebasedXudtCapacity, minChangeCapacity } = calcRebaseMintCapacity(
+    const { rebasedXudtCapacity, minChangeCapacity } = calcSingleRebaseMintCapacity(
       'ckt1qrfrwcdnvssswdwpn3s9v8fp87emat306ctjwsm3nmlkjg8qyza2cqgqq9sfrkfah2cj79nyp7e6p283ualq8779rscnjmrj',
     )
     expect(BigInt(14500000000)).toBe(rebasedXudtCapacity)
