@@ -1,6 +1,6 @@
 {
   "name": "ckb-omiga",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "description": "The JavaScript SDK for CKB Inscription Omiga",
   "author": "duanyytop <duanyytop@gmail.com>",
   "license": "MIT",
