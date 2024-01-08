@@ -35,7 +35,6 @@ const rebase = async () => {
 
   // the inscriptionId and preXudtHash come from inscription deploy transaction
   const inscriptionId = '0xcd89d8f36593a9a82501c024c5cdc4877ca11c5b3d5831b3e78334aecb978f0d'
-  const preXudtHash = '0x5fa66c8d5f43914f85d3083e0529931883a5b0a14282f891201069f1b5067908'
 
   // the actualSupply will be used in subsequent operations
   const actualSupply = await calcInscriptionActualSupply({ collector, inscriptionId, isMainnet: false })
@@ -46,7 +45,6 @@ const rebase = async () => {
     collector,
     joyID,
     address,
-    preXudtHash,
     actualSupply,
     inscriptionId,
   })

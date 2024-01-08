@@ -55,7 +55,6 @@ export interface ActualSupplyParams {
 
 export interface InfoRebaseParams extends BaseParams {
   inscriptionId: Byte32
-  preXudtHash: Byte32
   actualSupply: bigint
   joyID?: JoyIDConfig
 }
