@@ -32,6 +32,7 @@ import {
   calcRebasedXudtWitness,
   calculateTransactionFee,
   calculateRebaseTxFee,
+  getXudtHashFromInfo,
 } from './helper'
 import { append0x, leToU128, u128ToLe } from '../utils'
 import { calcXudtCapacity } from './mint'
@@ -61,7 +62,6 @@ export const buildInfoRebaseTx = async ({
   joyID,
   address,
   inscriptionId,
-  preXudtHash,
   actualSupply,
   feeRate,
 }: InfoRebaseParams): Promise<CKBComponents.RawTransaction> => {
@@ -93,6 +93,7 @@ export const buildInfoRebaseTx = async ({
 
   let cellDeps = [getJoyIDCellDep(isMainnet), getInscriptionInfoDep(isMainnet)]
 
+  const preXudtHash = getXudtHashFromInfo(inscriptionInfoCells[0].outputData)
   const rebasedXudtHash = calcRebasedXudtHash(inscriptionInfoType, preXudtHash, actualSupply, isMainnet)
   const inscriptionInfo = setInscriptionInfoRebased(inscriptionInfoCells[0].outputData, rebasedXudtHash)
 
