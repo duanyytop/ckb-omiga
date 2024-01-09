@@ -93,14 +93,14 @@ const TestnetInfo = {
 
 const MainnetInfo = {
   JoyIDLockScript: {
-    codeHash: '0xd23761b364210735c19c60561d213fb3beae2fd6172743719eff6920e020baac',
+    codeHash: '0xd00c84f0ec8fd441c38bc3f87a371f547190f2fcff88e642bc5bf54b9e318323',
     hashType: 'type',
     args: '',
   } as CKBComponents.Script,
 
   JoyIDLockDep: {
     outPoint: {
-      txHash: '0x4dcf3f3b09efac8995d6cbee87c5345e812d310094651e0c3d9a730f32dc9263',
+      txHash: '0xf05188e5f3a6767fc4687faf45ba5f1a6e25d3ada6129dae8722cb282f262493',
       index: '0x0',
     },
     depType: 'depGroup',
@@ -114,7 +114,7 @@ const MainnetInfo = {
 
   CotaTypeDep: {
     outPoint: {
-      txHash: '0x875db3381ebe7a730676c110e1c0d78ae1bdd0c11beacb7db4db08e368c2cd95',
+      txHash: '0xabaa25237554f0d6c586dc010e7e85e6870bcfd9fb8773257ecacfbe1fd738a0',
       index: '0x0',
     },
     depType: 'depGroup',
@@ -163,14 +163,14 @@ const MainnetInfo = {
   } as CKBComponents.CellDep,
 
   XUDTTypeScript: {
-    codeHash: '0x25c29dc317811a6f6f3985a7a9ebc4838bd388d19d0feeecf0bcd60f6c0975bb',
-    hashType: 'type',
+    codeHash: '0x50bd8d6680b8b9cf98b73f3c08faf8b2a21914311954118ad6609be6e78a1b95',
+    hashType: 'data1',
     args: '',
   } as CKBComponents.Script,
 
   XUDTTypeDep: {
     outPoint: {
-      txHash: '0xbf6fb538763efec2a70a6a3dcb7242787087e1030c4e7d86585bc63a9d337f5f',
+      txHash: '0xc07844ce21b38e4b071dd0e1ee3b0e27afd8d7532491327f39b786343f558ab7',
       index: '0x0',
     },
     depType: 'code',
