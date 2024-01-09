@@ -125,10 +125,10 @@ export const calcRebasedXudtType = (
 export const calcRebasedXudtHash = (
   inscriptionInfoScript: CKBComponents.Script,
   preXudtHash: Byte32,
-  actual_supply: bigint,
+  actualSupply: bigint,
   isMainnet: boolean,
 ) => {
-  return scriptToHash(calcRebasedXudtType(inscriptionInfoScript, preXudtHash, actual_supply, isMainnet))
+  return scriptToHash(calcRebasedXudtType(inscriptionInfoScript, preXudtHash, actualSupply, isMainnet))
 }
 
 export const calcMintXudtWitness = (inscriptionInfoScript: CKBComponents.Script, isMainnet: boolean) => {
