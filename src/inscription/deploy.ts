@@ -25,7 +25,7 @@ import {
 import { append0x } from '../utils'
 import { CapacityNotEnoughException, NoCotaCellException, NoLiveCellException } from '../exceptions'
 
-// include lock, inscription info type, capacity and 6000 shannon for tx fee
+// include lock, inscription info type, capacity and 60000 shannon for tx fee
 export const calcInscriptionInfoCapacity = (address: Address, info: InscriptionInfo) => {
   const lock = addressToScript(address)
   const argsSize = hexToBytes(lock.args).length
@@ -34,7 +34,7 @@ export const calcInscriptionInfoCapacity = (address: Address, info: InscriptionI
   const capacitySize = 8
   const xudtDataSize = calcInscriptionInfoSize(info)
   const cellSize = lockSize + inscriptionInfoTypeSize + capacitySize + xudtDataSize
-  return BigInt(cellSize) * BigInt(10000_0000) + BigInt(6000)
+  return BigInt(cellSize) * BigInt(10000_0000) + BigInt(6_0000)
 }
 
 export const buildDeployTx = async ({

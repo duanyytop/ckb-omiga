@@ -2,6 +2,7 @@ import {
   addressToScript,
   blake160,
   hexToBytes,
+  scriptToHash,
   serializeScript,
   serializeWitnessArgs,
 } from '@nervosnetwork/ckb-sdk-utils'
@@ -158,7 +159,6 @@ export const buildRebaseMintTx = async ({
   address,
   inscriptionId,
   inscriptionInfo,
-  preXudtHash,
   actualSupply,
   cellCount,
   feeRate,
@@ -172,6 +172,7 @@ export const buildRebaseMintTx = async ({
     args: append0x(inscriptionId),
   }
   const xudtType = calcXudtTypeScript(inscriptionInfoType, isMainnet)
+  const preXudtHash = scriptToHash(xudtType)
   const xudtCells = await collector.getCells({ lock, type: xudtType })
   if (!xudtCells || xudtCells.length === 0) {
     throw new InscriptionXudtException('The address has no inscription cells and please mint first')
