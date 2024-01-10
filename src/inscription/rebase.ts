@@ -215,13 +215,27 @@ export const buildRebaseMintTx = async ({
 
   const exceptedSupply = inscriptionInfo.maxSupply * BigInt(10 ** inscriptionInfo.decimal)
 
-  const rebasedXudtCellDataList = xudtCells.slice(0, cellCount).map(cell => {
+  let preTotalAmount = BigInt(0)
+  xudtCells.slice(0, cellCount).forEach(cell => {
     const preAmount = leToU128(cell.outputData)
-    const expectedAmount = BigNumber((preAmount * exceptedSupply).toString(), 10)
-    const actualAmount = expectedAmount
-      .dividedBy(BigNumber(actualSupply.toString(), 10))
-      .toFixed(0, BigNumber.ROUND_FLOOR)
-    return append0x(u128ToLe(BigInt(actualAmount)))
+    preTotalAmount = preTotalAmount + preAmount
+  })
+
+  const expectedTotalAmount_ = BigNumber((preTotalAmount * exceptedSupply).toString(), 10)
+  const actualTotalAmount_ = expectedTotalAmount_
+    .dividedBy(BigNumber(actualSupply.toString(), 10))
+    .toFixed(0, BigNumber.ROUND_FLOOR)
+  const actualTotalAmount = BigInt(actualTotalAmount_)
+
+  const actualAmount = actualTotalAmount / BigInt(xudtCellCount)
+  const remainder = actualTotalAmount % BigInt(xudtCellCount)
+  let xudt_output_index = 0
+  const rebasedXudtCellDataList = xudtCells.slice(0, cellCount).map(_cell => {
+    xudt_output_index += 1
+    if (xudt_output_index == xudtCellCount) {
+      return append0x(u128ToLe(actualAmount + remainder))
+    }
+    return append0x(u128ToLe(actualAmount))
   })
 
   const emptyWitness = { lock: '', inputType: '', outputType: '' }
