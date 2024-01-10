@@ -5,7 +5,7 @@
   "author": "duanyytop <duanyytop@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/duanyytop/ckb-omiga/issues"
+    "url": "https://github.com/omiga-core/ckb-omiga/issues"
   },
   "publishConfig": {
     "access": "public"
