@@ -1,11 +1,11 @@
 {
   "name": "ckb-omiga",
-  "version": "0.0.17",
+  "version": "0.0.19",
   "description": "The JavaScript SDK for CKB Inscription Omiga",
   "author": "duanyytop <duanyytop@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/duanyytop/ckb-omiga/issues"
+    "url": "https://github.com/omiga-core/ckb-omiga/issues"
   },
   "publishConfig": {
     "access": "public"
