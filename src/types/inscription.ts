@@ -1,4 +1,4 @@
-import { Byte32, Hex, U128, U8 } from './common'
+import { Byte32, Capacity, Hex, U128, U8 } from './common'
 import { Collector } from '../collector'
 import { Address } from '../types'
 import { ConnectResponseData } from '@joyid/ckb'
@@ -76,6 +76,12 @@ export interface TransferParams extends BaseParams {
   inscriptionId: Byte32
   toAddress: Address
   cellCount?: number
+  joyID?: JoyIDConfig
+}
+
+export interface TransferCKBParams extends BaseParams {
+  toAddress: Address
+  amount?: Capacity
   joyID?: JoyIDConfig
 }
 
