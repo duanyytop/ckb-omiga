@@ -121,7 +121,7 @@ const MainnetInfo = {
   } as CKBComponents.CellDep,
 
   InscriptionInfoTypeScript: {
-    codeHash: '0x8e9ea94e2165bd1bd100b4a5b0100d87c9b02c906ebc8318a3d1d3cb0cc6f5b5',
+    codeHash: '0x5c33fc69bd72e895a63176147c6ab0bb5758d1c7a32e0914f99f9ec1bed90d41',
     hashType: 'type',
     args: '',
   } as CKBComponents.Script,
@@ -135,7 +135,7 @@ const MainnetInfo = {
   } as CKBComponents.CellDep,
 
   InscriptionTypeScript: {
-    codeHash: '0xd9aaf206d84e0c5c9f19dcc7bf5945a2da82909b9f25656b1d390173b2672293',
+    codeHash: '0x7490970e6af9b9fe63fc19fc523a12b2ec69027e6ae484edffb97334f74e8c97',
     hashType: 'type',
     args: '',
   } as CKBComponents.Script,
@@ -149,7 +149,7 @@ const MainnetInfo = {
   } as CKBComponents.CellDep,
 
   RebaseTypeScript: {
-    codeHash: '0xf789ea256732ac5eeeebfbf7ca69bbcac50c9ddc63bbe00b61deff38fc8763f9',
+    codeHash: '0xda8fbf9b8497c0a34fad89377026e51128817c60167a2b7673b27c1a3f2a331f',
     hashType: 'type',
     args: '',
   } as CKBComponents.Script,
