@@ -121,42 +121,42 @@ const MainnetInfo = {
   } as CKBComponents.CellDep,
 
   InscriptionInfoTypeScript: {
-    codeHash: '0x50fdea2d0030a8d0b3d69f883b471cab2a29cae6f01923f19cecac0f27fdaaa6',
+    codeHash: '0x8e9ea94e2165bd1bd100b4a5b0100d87c9b02c906ebc8318a3d1d3cb0cc6f5b5',
     hashType: 'type',
     args: '',
   } as CKBComponents.Script,
 
   InscriptionInfoDep: {
     outPoint: {
-      txHash: '0x5c2705df3c0aa5486935248b1371d9309dce53c3aa2648a58694e3c025f97d83',
+      txHash: '0xff05722676d73dafe712004cbc02fe625cb06a74e26d512485bba0962bf49520',
       index: '0x0',
     },
     depType: 'code',
   } as CKBComponents.CellDep,
 
   InscriptionTypeScript: {
-    codeHash: '0x3a241ceceede72a5f55c8fb985652690f09a517d6c9070f0df0d3572fa03fb70',
+    codeHash: '0xd9aaf206d84e0c5c9f19dcc7bf5945a2da82909b9f25656b1d390173b2672293',
     hashType: 'type',
     args: '',
   } as CKBComponents.Script,
 
   InscriptionDep: {
     outPoint: {
-      txHash: '0xc3c812e490fd6e879b73aed8841c66b81f5caf8be0f6bd4bc00a2b5b2f15180b',
+      txHash: '0xd0576d843c36dbad70b1ae92e8600fcdbaf14d6606eb0beadb71a5b3b52dfff7',
       index: '0x0',
     },
     depType: 'code',
   } as CKBComponents.CellDep,
 
   RebaseTypeScript: {
-    codeHash: '0x93043b66bb20797caad0deacaadbada5e58f0893d770ecdddb8806aff8877e29',
+    codeHash: '0xf789ea256732ac5eeeebfbf7ca69bbcac50c9ddc63bbe00b61deff38fc8763f9',
     hashType: 'type',
     args: '',
   } as CKBComponents.Script,
 
   RebaseTypeDep: {
     outPoint: {
-      txHash: '0xad0031fb2c1d3cb7c87fc44c49519d6fd26e0c68263d3ce433482f634b041851',
+      txHash: '0x28edf58d9610cee1536eaf6c151aa31ff91b23cb507ee1dad82a1c56b9250835',
       index: '0x0',
     },
     depType: 'code',
