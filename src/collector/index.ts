@@ -141,7 +141,7 @@ export class Collector {
     if (sum < needCapacity + fee) {
       throw new CapacityNotEnoughException('Capacity not enough')
     }
-    if (sum < needCapacity + MIN_CAPACITY + fee) {
+    if (sum < needCapacity + MIN_CAPACITY + fee && sum != needCapacity + fee) {
       throw new CapacityNotEnoughException('Capacity not enough for change')
     }
     return { inputs, capacity: sum }

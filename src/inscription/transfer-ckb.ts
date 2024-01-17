@@ -32,9 +32,9 @@ export const buildTransferCKBTx = async ({
 
   const toLock = addressToScript(toAddress)
   let outputs: CKBComponents.CellOutput[] = []
-  if (inputCapacity + txFee === amount) {
+  if (inputCapacity === amount + txFee) {
     outputs.push({
-      capacity: `0x${inputCapacity.toString(16)}`,
+      capacity: `0x${amount.toString(16)}`,
       lock: toLock,
     })
   } else {
