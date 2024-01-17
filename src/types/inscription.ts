@@ -102,7 +102,7 @@ export interface RebaseMintResult {
 }
 
 export interface TransferParams extends BaseParams {
-  inscriptionId: Byte32
+  xudtType: CKBComponents.Script
   toAddress: Address
   cellCount?: number
   joyID?: JoyIDConfig
