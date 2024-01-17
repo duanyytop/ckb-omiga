@@ -4,6 +4,16 @@ import { Address } from '../types'
 import { ConnectResponseData } from '@joyid/ckb'
 import { Aggregator } from '../aggregator'
 
+export interface InscriptionXinsInfo {
+  decimal: U8
+  name: string
+  symbol: string
+  xinsHash: Byte32
+  maxSupply: U128
+  mintLimit: U128
+  mintStatus: U8
+}
+
 export interface InscriptionInfo {
   decimal: U8
   name: string
@@ -34,6 +44,12 @@ export interface DeployResult {
   rawTx: CKBComponents.RawTransaction
   inscriptionId: Hex
   xudtHash: Byte32
+}
+
+export interface DeployXinsResult {
+  rawTx: CKBComponents.RawTransaction
+  inscriptionId: Hex
+  xinsHash: Byte32
 }
 
 export interface MintParams extends BaseParams {

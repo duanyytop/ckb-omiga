@@ -60,6 +60,20 @@ export const calcInscriptionActualSupply = async ({ collector, inscriptionId, is
   return actualSupply
 }
 
+export const calcInscriptionXinsActualSupply = async ({ collector, inscriptionId, isMainnet }: ActualSupplyParams) => {
+  const inscriptionInfoType = {
+    ...getInscriptionInfoTypeScript(isMainnet),
+    args: append0x(inscriptionId),
+  }
+  const preXinsType = calcXinsTypeScript(inscriptionInfoType, isMainnet)
+  const preXinsCells = await collector.getCells({ type: preXinsType })
+  if (!preXinsCells || preXinsCells.length === 0) {
+    throw new InscriptionInfoException('Cannot find any previous xudt cell with the given inscription id')
+  }
+  const actualSupply = calcActualSupply(preXinsCells)
+  return actualSupply
+}
+
 export const buildInfoRebaseTx = async ({
   collector,
   joyID,

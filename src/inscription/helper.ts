@@ -10,7 +10,7 @@ import {
 } from '@nervosnetwork/ckb-sdk-utils'
 import BigNumber from 'bignumber.js'
 import { append0x, leToU128, remove0x, u128ToLe, u64ToLe, u8ToHex, utf8ToHex } from '../utils'
-import { Byte32, IndexerCell, InscriptionInfo } from '../types'
+import { Byte32, IndexerCell, InscriptionInfo, InscriptionXinsInfo } from '../types'
 import {
   getXudtTypeScript,
   getInscriptionTypeScript,
@@ -44,6 +44,19 @@ export const serializeInscriptionInfo = (info: InscriptionInfo) => {
   const symbol = remove0x(utf8ToHex(info.symbol))
   ret = ret.concat(u8ToHex(symbol.length / 2) + symbol)
   ret = ret.concat(remove0x(info.xudtHash))
+  ret = ret.concat(u128ToLe(info.maxSupply * BigInt(10 ** info.decimal)))
+  ret = ret.concat(u128ToLe(info.mintLimit * BigInt(10 ** info.decimal)))
+  ret = ret.concat(u8ToHex(info.mintStatus))
+  return ret
+}
+
+export const serializeInscriptionXinsInfo = (info: InscriptionXinsInfo) => {
+  let ret = u8ToHex(info.decimal)
+  const name = remove0x(utf8ToHex(info.name))
+  ret = ret.concat(u8ToHex(name.length / 2) + name)
+  const symbol = remove0x(utf8ToHex(info.symbol))
+  ret = ret.concat(u8ToHex(symbol.length / 2) + symbol)
+  ret = ret.concat(remove0x(info.xinsHash))
   ret = ret.concat(u128ToLe(info.maxSupply * BigInt(10 ** info.decimal)))
   ret = ret.concat(u128ToLe(info.mintLimit * BigInt(10 ** info.decimal)))
   ret = ret.concat(u8ToHex(info.mintStatus))
