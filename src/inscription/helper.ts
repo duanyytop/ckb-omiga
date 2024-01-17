@@ -11,7 +11,13 @@ import {
 import BigNumber from 'bignumber.js'
 import { append0x, leToU128, remove0x, u128ToLe, u64ToLe, u8ToHex, utf8ToHex } from '../utils'
 import { Byte32, IndexerCell, InscriptionInfo } from '../types'
-import { getXudtTypeScript, getInscriptionTypeScript, getRebaseTypeScript, MAX_TX_SIZE } from '../constants'
+import {
+  getXudtTypeScript,
+  getInscriptionTypeScript,
+  getRebaseTypeScript,
+  MAX_TX_SIZE,
+  getXinsTypeScript,
+} from '../constants'
 
 export const generateInscriptionId = (firstInput: CKBComponents.CellInput, outputIndex: number) => {
   const input = hexToBytes(serializeInput(firstInput))
@@ -91,6 +97,18 @@ export const calcXudtTypeScript = (inscriptionInfoScript: CKBComponents.Script, 
 
 export const calcXudtHash = (inscriptionInfoScript: CKBComponents.Script, isMainnet: boolean) => {
   return scriptToHash(calcXudtTypeScript(inscriptionInfoScript, isMainnet))
+}
+
+export const calcXinsTypeScript = (inscriptionInfoScript: CKBComponents.Script, isMainnet: boolean) => {
+  const ownerScript = generateOwnerScript(inscriptionInfoScript, isMainnet)
+  return {
+    ...getXinsTypeScript(isMainnet),
+    args: append0x(scriptToHash(ownerScript)),
+  } as CKBComponents.Script
+}
+
+export const calcXinsHash = (inscriptionInfoScript: CKBComponents.Script, isMainnet: boolean) => {
+  return scriptToHash(calcXinsTypeScript(inscriptionInfoScript, isMainnet))
 }
 
 export const calcRebasedXudtOwnerScript = (
