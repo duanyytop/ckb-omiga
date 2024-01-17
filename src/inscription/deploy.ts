@@ -16,6 +16,7 @@ import {
 import { Address, SubkeyUnlockReq } from '../types'
 import {
   DeployParams,
+  DeployXinsParams,
   DeployResult,
   DeployXinsResult,
   InscriptionInfo,
@@ -34,7 +35,7 @@ import { append0x } from '../utils'
 import { CapacityNotEnoughException, NoCotaCellException, NoLiveCellException } from '../exceptions'
 
 // include lock, inscription info type, capacity and 60000 shannon for tx fee
-export const calcInscriptionInfoCapacity = (address: Address, info: InscriptionInfo) => {
+export const calcInscriptionInfoCapacity = (address: Address, info: InscriptionInfo | InscriptionXinsInfo) => {
   const lock = addressToScript(address)
   const argsSize = hexToBytes(lock.args).length
   const lockSize = 32 + 1 + argsSize
@@ -142,7 +143,7 @@ export const buildDeployXinsTx = async ({
   address,
   info,
   feeRate,
-}: DeployParams): Promise<DeployXinsResult> => {
+}: DeployXinsParams): Promise<DeployXinsResult> => {
   const isMainnet = address.startsWith('ckb')
   const txFee = feeRate ? calculateTransactionFee(feeRate) : FEE
   const lock = addressToScript(address)

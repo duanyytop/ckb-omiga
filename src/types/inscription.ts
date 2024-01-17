@@ -40,6 +40,11 @@ export interface DeployParams extends BaseParams {
   joyID?: JoyIDConfig
 }
 
+export interface DeployXinsParams extends BaseParams {
+  info: InscriptionXinsInfo
+  joyID?: JoyIDConfig
+}
+
 export interface DeployResult {
   rawTx: CKBComponents.RawTransaction
   inscriptionId: Hex
@@ -77,6 +82,14 @@ export interface InfoRebaseParams extends BaseParams {
 
 export interface RebaseMintParams extends BaseParams {
   inscriptionInfo: InscriptionInfo
+  inscriptionId: Byte32
+  actualSupply: bigint
+  cellCount?: number
+  joyID?: JoyIDConfig
+}
+
+export interface RebaseMintXinsParams extends BaseParams {
+  inscriptionXinsInfo: InscriptionXinsInfo
   inscriptionId: Byte32
   actualSupply: bigint
   cellCount?: number

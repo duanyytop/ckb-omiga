@@ -22,6 +22,7 @@ import {
   Address,
   InfoRebaseParams,
   RebaseMintParams,
+  RebaseMintXinsParams,
   RebaseMintResult,
   SubkeyUnlockReq,
 } from '../types'
@@ -305,11 +306,11 @@ export const buildRebaseMintXinsTx = async ({
   joyID,
   address,
   inscriptionId,
-  inscriptionInfo,
+  inscriptionXinsInfo,
   actualSupply,
   cellCount,
   feeRate,
-}: RebaseMintParams): Promise<RebaseMintResult> => {
+}: RebaseMintXinsParams): Promise<RebaseMintResult> => {
   const isMainnet = address.startsWith('ckb')
   const lock = addressToScript(address)
   const { minChangeCapacity } = calcSingleRebaseMintCapacity(address)
@@ -366,7 +367,7 @@ export const buildRebaseMintXinsTx = async ({
     ...xudtOutputs,
   ]
 
-  const exceptedSupply = inscriptionInfo.maxSupply * BigInt(10 ** inscriptionInfo.decimal)
+  const exceptedSupply = inscriptionXinsInfo.maxSupply * BigInt(10 ** inscriptionXinsInfo.decimal)
 
   let preTotalAmount = BigInt(0)
   xinsCells.slice(0, cellCount).forEach(cell => {
