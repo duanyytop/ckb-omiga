@@ -28,7 +28,7 @@ export const generateInscriptionId = (firstInput: CKBComponents.CellInput, outpu
 }
 
 const FIXED_SIZE = 66
-export const calcInscriptionInfoSize = (info: InscriptionInfo) => {
+export const calcInscriptionInfoSize = (info: InscriptionInfo | InscriptionXinsInfo) => {
   let size = FIXED_SIZE
   const name = remove0x(utf8ToHex(info.name))
   size += name.length / 2 + 1
