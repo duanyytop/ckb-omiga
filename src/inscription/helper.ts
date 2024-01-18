@@ -10,8 +10,14 @@ import {
 } from '@nervosnetwork/ckb-sdk-utils'
 import BigNumber from 'bignumber.js'
 import { append0x, leToU128, remove0x, u128ToLe, u64ToLe, u8ToHex, utf8ToHex } from '../utils'
-import { Byte32, IndexerCell, InscriptionInfo } from '../types'
-import { getXudtTypeScript, getInscriptionTypeScript, getRebaseTypeScript, MAX_TX_SIZE } from '../constants'
+import { Byte32, IndexerCell, InscriptionInfo, InscriptionXinsInfo } from '../types'
+import {
+  getXudtTypeScript,
+  getInscriptionTypeScript,
+  getRebaseTypeScript,
+  MAX_TX_SIZE,
+  getXinsTypeScript,
+} from '../constants'
 
 export const generateInscriptionId = (firstInput: CKBComponents.CellInput, outputIndex: number) => {
   const input = hexToBytes(serializeInput(firstInput))
@@ -22,7 +28,7 @@ export const generateInscriptionId = (firstInput: CKBComponents.CellInput, outpu
 }
 
 const FIXED_SIZE = 66
-export const calcInscriptionInfoSize = (info: InscriptionInfo) => {
+export const calcInscriptionInfoSize = (info: InscriptionInfo | InscriptionXinsInfo) => {
   let size = FIXED_SIZE
   const name = remove0x(utf8ToHex(info.name))
   size += name.length / 2 + 1
@@ -38,6 +44,19 @@ export const serializeInscriptionInfo = (info: InscriptionInfo) => {
   const symbol = remove0x(utf8ToHex(info.symbol))
   ret = ret.concat(u8ToHex(symbol.length / 2) + symbol)
   ret = ret.concat(remove0x(info.xudtHash))
+  ret = ret.concat(u128ToLe(info.maxSupply * BigInt(10 ** info.decimal)))
+  ret = ret.concat(u128ToLe(info.mintLimit * BigInt(10 ** info.decimal)))
+  ret = ret.concat(u8ToHex(info.mintStatus))
+  return ret
+}
+
+export const serializeInscriptionXinsInfo = (info: InscriptionXinsInfo) => {
+  let ret = u8ToHex(info.decimal)
+  const name = remove0x(utf8ToHex(info.name))
+  ret = ret.concat(u8ToHex(name.length / 2) + name)
+  const symbol = remove0x(utf8ToHex(info.symbol))
+  ret = ret.concat(u8ToHex(symbol.length / 2) + symbol)
+  ret = ret.concat(remove0x(info.xinsHash))
   ret = ret.concat(u128ToLe(info.maxSupply * BigInt(10 ** info.decimal)))
   ret = ret.concat(u128ToLe(info.mintLimit * BigInt(10 ** info.decimal)))
   ret = ret.concat(u8ToHex(info.mintStatus))
@@ -91,6 +110,18 @@ export const calcXudtTypeScript = (inscriptionInfoScript: CKBComponents.Script, 
 
 export const calcXudtHash = (inscriptionInfoScript: CKBComponents.Script, isMainnet: boolean) => {
   return scriptToHash(calcXudtTypeScript(inscriptionInfoScript, isMainnet))
+}
+
+export const calcXinsTypeScript = (inscriptionInfoScript: CKBComponents.Script, isMainnet: boolean) => {
+  const ownerScript = generateOwnerScript(inscriptionInfoScript, isMainnet)
+  return {
+    ...getXinsTypeScript(isMainnet),
+    args: append0x(scriptToHash(ownerScript)),
+  } as CKBComponents.Script
+}
+
+export const calcXinsHash = (inscriptionInfoScript: CKBComponents.Script, isMainnet: boolean) => {
+  return scriptToHash(calcXinsTypeScript(inscriptionInfoScript, isMainnet))
 }
 
 export const calcRebasedXudtOwnerScript = (

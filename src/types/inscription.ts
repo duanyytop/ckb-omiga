@@ -1,8 +1,18 @@
-import { Byte32, Hex, U128, U8 } from './common'
+import { Byte32, Capacity, Hex, U128, U8 } from './common'
 import { Collector } from '../collector'
 import { Address } from '../types'
 import { ConnectResponseData } from '@joyid/ckb'
 import { Aggregator } from '../aggregator'
+
+export interface InscriptionXinsInfo {
+  decimal: U8
+  name: string
+  symbol: string
+  xinsHash: Byte32
+  maxSupply: U128
+  mintLimit: U128
+  mintStatus: U8
+}
 
 export interface InscriptionInfo {
   decimal: U8
@@ -30,10 +40,21 @@ export interface DeployParams extends BaseParams {
   joyID?: JoyIDConfig
 }
 
+export interface DeployXinsParams extends BaseParams {
+  info: InscriptionXinsInfo
+  joyID?: JoyIDConfig
+}
+
 export interface DeployResult {
   rawTx: CKBComponents.RawTransaction
   inscriptionId: Hex
   xudtHash: Byte32
+}
+
+export interface DeployXinsResult {
+  rawTx: CKBComponents.RawTransaction
+  inscriptionId: Hex
+  xinsHash: Byte32
 }
 
 export interface MintParams extends BaseParams {
@@ -67,15 +88,29 @@ export interface RebaseMintParams extends BaseParams {
   joyID?: JoyIDConfig
 }
 
+export interface RebaseMintXinsParams extends BaseParams {
+  inscriptionXinsInfo: InscriptionXinsInfo
+  inscriptionId: Byte32
+  actualSupply: bigint
+  cellCount?: number
+  joyID?: JoyIDConfig
+}
+
 export interface RebaseMintResult {
   rawTx: CKBComponents.RawTransaction
   rebasedXudtType: CKBComponents.Script
 }
 
 export interface TransferParams extends BaseParams {
-  inscriptionId: Byte32
+  xudtType: CKBComponents.Script
   toAddress: Address
   cellCount?: number
+  joyID?: JoyIDConfig
+}
+
+export interface TransferCKBParams extends BaseParams {
+  toAddress: Address
+  amount?: Capacity
   joyID?: JoyIDConfig
 }
 

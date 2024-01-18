@@ -15,12 +15,14 @@ import {
   getCotaTypeScript,
   getXudtDep,
   getRebaseDep,
+  getXinsDep,
 } from '../constants'
 import {
   ActualSupplyParams,
   Address,
   InfoRebaseParams,
   RebaseMintParams,
+  RebaseMintXinsParams,
   RebaseMintResult,
   SubkeyUnlockReq,
 } from '../types'
@@ -34,6 +36,7 @@ import {
   calculateTransactionFee,
   calculateRebaseTxFee,
   getXudtHashFromInfo,
+  calcXinsTypeScript,
 } from './helper'
 import { append0x, leToU128, u128ToLe } from '../utils'
 import { calcXudtCapacity } from './mint'
@@ -55,6 +58,20 @@ export const calcInscriptionActualSupply = async ({ collector, inscriptionId, is
     throw new InscriptionInfoException('Cannot find any previous xudt cell with the given inscription id')
   }
   const actualSupply = calcActualSupply(preXudtCells)
+  return actualSupply
+}
+
+export const calcInscriptionXinsActualSupply = async ({ collector, inscriptionId, isMainnet }: ActualSupplyParams) => {
+  const inscriptionInfoType = {
+    ...getInscriptionInfoTypeScript(isMainnet),
+    args: append0x(inscriptionId),
+  }
+  const preXinsType = calcXinsTypeScript(inscriptionInfoType, isMainnet)
+  const preXinsCells = await collector.getCells({ type: preXinsType })
+  if (!preXinsCells || preXinsCells.length === 0) {
+    throw new InscriptionInfoException('Cannot find any previous xudt cell with the given inscription id')
+  }
+  const actualSupply = calcActualSupply(preXinsCells)
   return actualSupply
 }
 
@@ -153,6 +170,7 @@ export const calcSingleRebaseMintCapacity = (
 
   return { rebasedXudtCapacity, minChangeCapacity }
 }
+
 export const buildRebaseMintTx = async ({
   collector,
   joyID,
@@ -242,6 +260,142 @@ export const buildRebaseMintTx = async ({
   let witnesses = [
     serializeWitnessArgs(emptyWitness),
     calcRebasedXudtWitness(inscriptionInfoType, preXudtHash, actualSupply, isMainnet),
+  ]
+  if (joyID && joyID.connectData.keyType === 'sub_key') {
+    const pubkeyHash = append0x(blake160(append0x(joyID.connectData.pubkey), 'hex'))
+    const req: SubkeyUnlockReq = {
+      lockScript: serializeScript(lock),
+      pubkeyHash,
+      algIndex: 1, // secp256r1
+    }
+    const { unlockEntry } = await joyID.aggregator.generateSubkeyUnlockSmt(req)
+    const emptyWitness = {
+      lock: '',
+      inputType: '',
+      outputType: append0x(unlockEntry),
+    }
+    witnesses[0] = serializeWitnessArgs(emptyWitness)
+
+    const cotaType = getCotaTypeScript(isMainnet)
+    const cotaCells = await collector.getCells({ lock, type: cotaType })
+    if (!cotaCells || cotaCells.length === 0) {
+      throw new NoCotaCellException("Cota cell doesn't exist")
+    }
+    const cotaCell = cotaCells[0]
+    const cotaCellDep: CKBComponents.CellDep = {
+      outPoint: cotaCell.outPoint,
+      depType: 'code',
+    }
+    cellDeps = [cotaCellDep, ...cellDeps]
+  }
+  const rawTx: CKBComponents.RawTransaction = {
+    version: '0x0',
+    cellDeps,
+    headerDeps: [],
+    inputs,
+    outputs,
+    outputsData: ['0x', ...rebasedXudtCellDataList],
+    witnesses,
+  }
+
+  return { rawTx, rebasedXudtType }
+}
+
+export const buildRebaseMintXinsTx = async ({
+  collector,
+  joyID,
+  address,
+  inscriptionId,
+  inscriptionXinsInfo,
+  actualSupply,
+  cellCount,
+  feeRate,
+}: RebaseMintXinsParams): Promise<RebaseMintResult> => {
+  const isMainnet = address.startsWith('ckb')
+  const lock = addressToScript(address)
+  const { minChangeCapacity } = calcSingleRebaseMintCapacity(address)
+
+  const inscriptionInfoType = {
+    ...getInscriptionInfoTypeScript(isMainnet),
+    args: append0x(inscriptionId),
+  }
+  const xinsType = calcXinsTypeScript(inscriptionInfoType, isMainnet)
+  const preXinsHash = scriptToHash(xinsType)
+  const xinsCells = await collector.getCells({ lock, type: xinsType })
+  if (!xinsCells || xinsCells.length === 0) {
+    throw new InscriptionXudtException('The address has no inscription cells and please mint first')
+  }
+  const xinsCellCount = cellCount && cellCount > 0 ? Math.min(xinsCells.length, cellCount) : xinsCells.length
+  const txFee = calculateRebaseTxFee(xinsCellCount, feeRate)
+
+  const cells = await collector.getCells({ lock })
+  if (!cells || cells.length === 0) {
+    throw new NoLiveCellException('The address has no live cells')
+  }
+  let { inputs, capacity: inputCapacity } = collector.collectInputs(cells, minChangeCapacity, txFee)
+  const xinsInputs = xinsCells.slice(0, cellCount).map(cell => ({ previousOutput: cell.outPoint, since: '0x0' }))
+  inputs = [...xinsInputs, ...inputs]
+
+  const inscriptionInfoCells = await collector.getCells({ type: inscriptionInfoType })
+  if (!inscriptionInfoCells || inscriptionInfoCells.length === 0) {
+    throw new InscriptionInfoException('There is no inscription info cell with the given inscription id')
+  }
+  const inscriptionInfoCellDep: CKBComponents.CellDep = {
+    outPoint: inscriptionInfoCells[0].outPoint,
+    depType: 'code',
+  }
+  let cellDeps = [
+    getJoyIDCellDep(isMainnet),
+    getXudtDep(isMainnet),
+    getXinsDep(isMainnet),
+    getRebaseDep(isMainnet),
+    inscriptionInfoCellDep,
+  ]
+
+  const rebasedXudtType = calcRebasedXudtType(inscriptionInfoType, preXinsHash, actualSupply, isMainnet)
+
+  const xudtOutputs = xinsCells.slice(0, cellCount).map(cell => ({
+    ...cell.output,
+    type: rebasedXudtType,
+  }))
+  const changeCapacity = inputCapacity - txFee
+  let outputs: CKBComponents.CellOutput[] = [
+    {
+      capacity: `0x${changeCapacity.toString(16)}`,
+      lock,
+    },
+    ...xudtOutputs,
+  ]
+
+  const exceptedSupply = inscriptionXinsInfo.maxSupply * BigInt(10 ** inscriptionXinsInfo.decimal)
+
+  let preTotalAmount = BigInt(0)
+  xinsCells.slice(0, cellCount).forEach(cell => {
+    const preAmount = leToU128(cell.outputData)
+    preTotalAmount = preTotalAmount + preAmount
+  })
+
+  const expectedTotalAmount_ = BigNumber((preTotalAmount * exceptedSupply).toString(), 10)
+  const actualTotalAmount_ = expectedTotalAmount_
+    .dividedBy(BigNumber(actualSupply.toString(), 10))
+    .toFixed(0, BigNumber.ROUND_FLOOR)
+  const actualTotalAmount = BigInt(actualTotalAmount_)
+
+  const actualAmount = actualTotalAmount / BigInt(xinsCellCount)
+  const remainder = actualTotalAmount % BigInt(xinsCellCount)
+  let xudt_output_index = 0
+  const rebasedXudtCellDataList = xinsCells.slice(0, cellCount).map(_cell => {
+    xudt_output_index += 1
+    if (xudt_output_index == xinsCellCount) {
+      return append0x(u128ToLe(actualAmount + remainder))
+    }
+    return append0x(u128ToLe(actualAmount))
+  })
+
+  const emptyWitness = { lock: '', inputType: '', outputType: '' }
+  let witnesses = [
+    serializeWitnessArgs(emptyWitness),
+    calcRebasedXudtWitness(inscriptionInfoType, preXinsHash, actualSupply, isMainnet),
   ]
   if (joyID && joyID.connectData.keyType === 'sub_key') {
     const pubkeyHash = append0x(blake160(append0x(joyID.connectData.pubkey), 'hex'))

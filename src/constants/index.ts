@@ -89,6 +89,20 @@ const TestnetInfo = {
     },
     depType: 'code',
   } as CKBComponents.CellDep,
+
+  XINSTypeScript: {
+    codeHash: '0x27762139c09452b5d4be6f34720db031a2ab348679a4612b6863a6907a6244ed',
+    hashType: 'type',
+    args: '',
+  } as CKBComponents.Script,
+
+  XINSTypeDep: {
+    outPoint: {
+      txHash: '0x94dccee46e2636a729119abb5a74641d12cc8f64e09378d3abceeac807ea7223',
+      index: '0x0',
+    },
+    depType: 'code',
+  } as CKBComponents.CellDep,
 }
 
 const MainnetInfo = {
@@ -175,6 +189,20 @@ const MainnetInfo = {
     },
     depType: 'code',
   } as CKBComponents.CellDep,
+
+  XINSTypeScript: {
+    codeHash: '0x27762139c09452b5d4be6f34720db031a2ab348679a4612b6863a6907a6244ed',
+    hashType: 'type',
+    args: '',
+  } as CKBComponents.Script,
+
+  XINSTypeDep: {
+    outPoint: {
+      txHash: '0x94dccee46e2636a729119abb5a74641d12cc8f64e09378d3abceeac807ea7223',
+      index: '0x0',
+    },
+    depType: 'code',
+  } as CKBComponents.CellDep,
 }
 
 export const getJoyIDLockScript = (isMainnet = false) =>
@@ -202,3 +230,7 @@ export const getRebaseDep = (isMainnet = false) => (isMainnet ? MainnetInfo.Reba
 export const getXudtTypeScript = (isMainnet = false) =>
   isMainnet ? MainnetInfo.XUDTTypeScript : TestnetInfo.XUDTTypeScript
 export const getXudtDep = (isMainnet = false) => (isMainnet ? MainnetInfo.XUDTTypeDep : TestnetInfo.XUDTTypeDep)
+
+export const getXinsTypeScript = (isMainnet = false) =>
+  isMainnet ? MainnetInfo.XINSTypeScript : TestnetInfo.XINSTypeScript
+export const getXinsDep = (isMainnet = false) => (isMainnet ? MainnetInfo.XINSTypeDep : TestnetInfo.XINSTypeDep)
