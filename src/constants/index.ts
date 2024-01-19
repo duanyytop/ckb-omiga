@@ -142,7 +142,7 @@ const MainnetInfo = {
 
   InscriptionInfoDep: {
     outPoint: {
-      txHash: '0xff05722676d73dafe712004cbc02fe625cb06a74e26d512485bba0962bf49520',
+      txHash: '0x372ba2b2122214855b4a2c34265d3e311798287169bdbd1af50afd49a11a33ab',
       index: '0x0',
     },
     depType: 'code',

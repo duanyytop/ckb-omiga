@@ -111,7 +111,7 @@ export const buildInfoRebaseTx = async ({
 
   let cellDeps = [getJoyIDCellDep(isMainnet), getInscriptionInfoDep(isMainnet)]
 
-  const preXudtHash = getXudtHashFromInfo(inscriptionInfoCells[0].outputData)
+  const preXudtHash = scriptToHash(calcXudtTypeScript(inscriptionInfoType, isMainnet))
   const rebasedXudtHash = calcRebasedXudtHash(inscriptionInfoType, preXudtHash, actualSupply, isMainnet)
   const inscriptionInfo = setInscriptionInfoRebased(inscriptionInfoCells[0].outputData, rebasedXudtHash)
 
